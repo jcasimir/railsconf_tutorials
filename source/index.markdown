@@ -1,12 +1,9 @@
 ---
 layout: page
-title: Tutorials
+title: RailsConf 2013 Tutorials
 ---
 
-{% section projects/ruby.markdown /images/ruby.png Ruby and Rails %}
-{% section projects/javascript/index.markdown /images/js.png JavaScript %}
-{% section projects/arduino/index.markdown /images/arduino.png Arduino & Dino %}
-{% section projects/gschool.markdown /images/gschool.jpg gSchool %}
-{% section academy/workshops/index.markdown /images/hungry-academy.png Workshops %}
-{% section reading/index.markdown /images/hungry-academy.png Reading %}
-
+* Setup Instructions
+* Monday
+* Tuesday
+* Wednesday
