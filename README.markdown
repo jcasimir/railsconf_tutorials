@@ -1,6 +1,4 @@
-# Jumpstart Lab Curriculum
-
-[![Build Status](https://secure.travis-ci.org/JumpstartLab/curriculum.png?branch=master)](http://travis-ci.org/JumpstartLab/curriculum)
+# RailsConf 2013 Workshops
 
 ## Installation
 
@@ -102,7 +100,7 @@ This tag will generate a special section layout which will embed the specified m
 
 ## Online
 
-Visit [http://tutorials.jumpstartlab.com](http://tutorials.jumpstartlab.com)
+Visit [http://railsconftutorials.com](http://railsconftutorials.com)
 
 ### License
 
