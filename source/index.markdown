@@ -6,6 +6,10 @@ sidebar: true
 
 Welcome to the RailsConf 2013 Tutorials track. Below you'll find general setup instructions and links/resources for each session.
 
+### Chat
+
+Join the group chat room at http://railsconftutorials.com/chat
+
 ### General Setup Instructions
 
 To get the most out of tutorial sessions, it's expected that you have:
