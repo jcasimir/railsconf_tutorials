@@ -39,9 +39,8 @@ are often output in red).
 In the process of getting a test to pass, you may need another feature, which
 means you will write another test and try to make that pass. In the case of
 Behavior-Driven Development (BDD), we set high-level test expectations and allow
-them to guide us to what lower-level code is necessary as well. We'll start with
-[an example of Outside-In Development][1]
+them to guide us to what lower-level code is necessary as well.
 
+Lets get started with [an example of Outside-In Development][1]
 
-[1]: /doc/02_integration_testing.md
-
+[1]: {% page_url 02_integration_testing %}

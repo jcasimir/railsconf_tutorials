@@ -194,5 +194,8 @@ That was one very simple cycle of TDD.
 
 This is a very simple example, but it gives you a sense of how TDD is done.
 
+Next step is dive down to an ActiveRecord model and  [test Validations and Associations][3]
+
 [1]: https://github.com/cucumber/cucumber/wiki/Gherkin
 [2]: http://robots.thoughtbot.com/post/33771089985/rspec-integration-tests-with-capybara
+[3]: {% page_url 03_validations_and_associations %}
