@@ -914,4 +914,103 @@ Having done this we can delete anything in the `TagCloud` referring to
 
 Run the `lockdown` test and commit your changes.
 
+## I7: Sending the tag clouds to the view
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i6` tag.
+
+```bash
+git checkout -b iteration7 cloud.i6
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration7
+```
+
+Open up the `app/views/stats/_tags.html.erb` file. This is the template for
+our tag cloud.
+
+Now that we have these handy tag cloud objects in the controller, let's assign
+them to instance variables and use them in the view.
+
+Start out by just adding extra lines with the assignments in them so that we
+don't have to change all the code in the controller method:
+
+```ruby
+def get_stats_tags
+  cloud = TagCloud.new(current_user)
+  cloud.compute
+  @cloud = cloud # <-- this line is new
+  @tags_for_cloud = cloud.tags
+  @tags_min = cloud.min
+  @tags_divisor = cloud.divisor
+
+  cloud = TagCloud.new(current_user, @cut_off_3months)
+  cloud.compute
+  @cloud_90days = cloud # <-- this line is new
+  @tags_for_cloud_90days = cloud.tags
+  @tags_min_90days = cloud.min
+  @tags_divisor_90days = cloud.divisor
+end
+```
+
+Assigning extra variables won't change the output, so our test is still
+passing.
+
+Let's go back to the view and replace each instance variable one at a time
+with a call to the cloud object that we now have available to us.
+
+First, replace `@tags_for_cloud` with `@cloud.tags`.
+
+The tests failed when I did this.
+
+Take a look at the diff of the files, though:
+
+```bash
+diff .lockdown/received.html .lockdown/approved.html
+```
+
+The only difference is a single line of extra whitespace. I'm OK with that, so
+I'm going to approve the new file:
+
+```bash
+```
+
+The only difference is a single line of extra whitespace. I'm OK with that, so
+I'm going to approve the new file:
+
+```bash
+cp .lockdown/received.html .lockdown/approved.html
+```
+
+Next replace `@tags_min` with `@cloud.min` and run the test.
+
+It's still passing.
+
+Replace `@tags_divisor` with `@cloud.divisor`.
+
+Run the test.
+
+Replace `@tags_for_cloud_90days` with `@cloud_90days.tags`, and run the
+tests.
+
+Replace `@tags_min_90days` with `@cloud_90days.min` and `@tags_divisor_90days`
+with `@cloud_90days.divisor`.
+
+Run the tests.
+
+Now we can go back and clean up the controller, because we're not using some
+of those instance variables:
+
+```ruby
+def get_stats_tags
+  @cloud = TagCloud.new(current_user)
+  @cloud.compute
+  @cloud_90days = TagCloud.new(current_user, @cut_off_3months)
+  @cloud_90days.compute
+end
+```
+
+Run the test and commit your changes.
 
