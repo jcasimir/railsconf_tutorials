@@ -234,7 +234,7 @@ Commit your changes.
 
 ## I3: Using the TagCloud
 
-If you've gotten confused and want to get a clean slate, go ahead and checkout a new branch based on the `cloud.i2` tag.
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i2` tag.
 
 ```bash
 git checkout -b iteration3 cloud.i2
@@ -458,6 +458,75 @@ end
 ```
 
 The `lockdown` test should be passing.
+
+Commit your changes.
+
+## I4: Cleaning up the TagCloud
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i3` tag.
+
+```bash
+git checkout -b iteration4 cloud.i3
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration4
+```
+
+### Current User is not Current
+
+In `app/models/tag_cloud.rb` we're referring to a `current_user`, but users in
+the model aren't really `current`, that's a controller/view level bit of
+logic.
+
+Rename `current_user` to `user`, and run the `lockdown` test to make sure you
+did it correctly.
+
+### Comments
+
+Take a look at the comment that goes like this:
+
+```ruby
+# tag cloud code inspired by this article
+# http://www.juixe.com/techknow/index.php/2006/07/15/acts-as-taggable-tag-cloud/
+```
+
+That seems like it is relevant to the whole file, not just the compute method.
+Move it up to the top of the file.
+
+The `TODO` comment is still relevant, but let's make it a comment for the
+whole `compute` method.
+
+The remaining comments are just trying to explain the code. Let's go ahead and
+get rid of them.
+
+### Redundant Variable Names
+
+The variable names `tags_for_cloud` and `tags_for_cloud_90days` contain some
+redundancy in them now, because these are being called on an object that *is*
+a tag cloud. Let's get rid of the `for_cloud` bit and just call them `tags`
+and `tags_90days`.
+
+Once you've made the change in the `TagCloud` class, you'll need to update the
+controller as well.
+
+Be sure to only update the calls to `cloud`, not the instance variables that
+you're assigning, because the views are still using the old names.
+
+```ruby
+@tags_for_cloud = cloud.tags
+@tags_for_cloud_90days = cloud.tags_90days
+```
+
+I think the `tags_min` and `tags_divisor` variables also have some redundancy
+in them. It's all about tags. Let's call them `min`, `divisor`, `min_90days`,
+and `divisor_90days`.
+
+Remember to update the controller as well.
+
+Run the `lockdown` test, and it should still be passing.
 
 Commit your changes.
 
