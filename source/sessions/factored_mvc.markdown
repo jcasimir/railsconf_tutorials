@@ -528,5 +528,277 @@ Remember to update the controller as well.
 
 Run the `lockdown` test, and it should still be passing.
 
+## Overspecified Variable Name
+
+The `@cut_off_3months` variable name has too much information in it. It will
+work no matter what cut off we operate with. Let's rename it to be simply
+`cut_off`.
+
+Run the `lockdown` test, and commit your changes.
+
+## I5: Extracting the SQL queries
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i4` tag.
+
+```bash
+git checkout -b iteration5 cloud.i4
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration5
+```
+
+Let's start dealing with that big `compute` method.
+
+The first thing I want to do is get those big SQL strings out of there.
+They're very similar, but not identical.
+
+Let's start with the second one, because that is the longest one.
+
+First add a `private` declaration at the bottom of the class.
+
+Then, below it, add an empty method called `sql_90days`.
+
+```ruby
+def sql_90days
+end
+```
+Now _copy_ the big query string that gets used for the `@tags_90days` assignment.
+
+```ruby
+def sql_90days
+  query = "SELECT tags.id, tags.name AS name, count(*) AS count"
+  query << " FROM taggings, tags, todos"
+  query << " WHERE tags.id = tag_id"
+  query << " AND todos.user_id=? "
+  query << " AND taggings.taggable_type='Todo' "
+  query << " AND taggings.taggable_id=todos.id "
+  query << " AND (todos.created_at > ? OR "
+  query << "      todos.completed_at > ?) "
+  query << " GROUP BY tags.id, tags.name"
+  query << " ORDER BY count DESC, name"
+  query << " LIMIT 100"
+end
+```
+
+Find the line where the local variable `query` gets used:
+
+```ruby
+@tags_90days = Tag.find_by_sql(
+  [query, user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
+```
+
+Replace `query` with `sql_90days`, and then run the `lockdown` test.
+
+It should be passing.
+
+Delete the old `query` definition, and rerun the `lockdown` test. It should
+still be passing.
+
+Commit your changes so you can roll back to this point easily if things go
+south in the next step.
+
+### Do It Again
+
+Let's do the same thing for the first SQL query string.
+
+Create a method called `sql`, and copy the query string into it.
+
+Verify that the test is passing, delete the old query, and check that the test
+is still passing.
+
 Commit your changes.
+
+### Comparing the two SQL queries
+
+Now that the SQL queries are all on their own, let's take a look at how they
+compare to each other.
+
+Take a look at the first lines:
+
+```ruby
+# sql_90days
+"SELECT tags.id, tags.name AS name, count(*) AS count"
+```
+
+```ruby
+# sql
+"SELECT tags.id, name, count(*) AS count"
+```
+
+These are equivalent.
+
+Copy the first line of `sql_90days` into `sql`, replacing the first line there.
+
+Lines 2 and 3 of both queries are identical.
+
+Lines 4, 5, and 6 are not. Let's look at them:
+
+```ruby
+# sql_90days
+query << " AND todos.user_id=? "
+query << " AND taggings.taggable_type='Todo' "
+query << " AND taggings.taggable_id=todos.id "
+```
+
+```ruby
+# sql
+query << " AND taggings.taggable_id = todos.id"
+query << " AND todos.user_id="+user.id.to_s+" "
+query << " AND taggings.taggable_type='Todo' "
+```
+
+We can reorder those lines in `sql`, putting line 4 after line 6:
+
+```ruby
+# sql
+query << " AND todos.user_id="+user.id.to_s+" "
+query << " AND taggings.taggable_type='Todo' "
+query << " AND taggings.taggable_id = todos.id"
+```
+
+Now lines 5 and 6 are identical in both queries, and we're stuck with line 4:
+
+```ruby
+# sql_90days
+query << " AND todos.user_id=? "
+```
+
+```ruby
+# sql
+query << " AND todos.user_id="+user.id.to_s+" "
+`
+
+These are essentially the same thing, but in one we're interpolating the
+`user.id` id directly into the string, and in the other we're passing the
+`user.id` to the `find_by_sql` method as a parameter.
+
+Before we can make these two lines identical we need to tweak the
+`find_by_sql` calls in the `compute` method.
+
+
+The two `find_by_sql` calls look like this:
+
+```ruby
+@tags_90days = Tag.find_by_sql(
+  [sql_90days, user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
+```
+
+```ruby
+@tags = Tag.find_by_sql(sql).sort_by { |tag| tag.name.downcase }
+```
+
+First, let's reformat the one-liner to be on 3 lines:
+
+```ruby
+@tags = Tag.find_by_sql(
+  sql
+).sort_by { |tag| tag.name.downcase }
+```
+
+Now the biggest difference between the two is that one of the method calls
+takes an array, whereas the other just takes a string.
+
+We can change it so that both of these take an array:
+
+```ruby
+@tags = Tag.find_by_sql(
+  [sql]
+).sort_by { |tag| tag.name.downcase }
+```
+
+If you run the `lockdown` test, it should still be passing.
+
+Next, let's go ahead and add the `user.id` to the array, even though it
+doesn't get used yet.
+
+The `lockdown` test is still passing`.
+
+And now, finally, we can change the line of code in the `sql` method to be
+identical to the one in the `sql_90days` method:
+
+```ruby
+query << " AND todos.user_id=? "
+```
+
+At this point the last 3 lines of the query are identical as well, but the
+`sql_90days` method has 2 extra lines in it:
+
+```ruby
+query << " AND (todos.created_at > ? OR "
+query << "      todos.completed_at > ?) "
+```
+
+Notice the question marks in those two lines? This is where the
+`@cut_off` gets used in the call to `find_by_sql`:
+
+```ruby
+@tags_90days = Tag.find_by_sql(
+  [sql_90days, user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
+```
+
+So we can pass the cut off to the method and add an if statement around
+those lines of code, making the `sql_90days` method look like this:
+
+```ruby
+def sql_90days(cut_off = nil)
+  query = "SELECT tags.id, tags.name AS name, count(*) AS count"
+  query << " FROM taggings, tags, todos"
+  query << " WHERE tags.id = tag_id"
+  query << " AND todos.user_id=? "
+  query << " AND taggings.taggable_type='Todo' "
+  query << " AND taggings.taggable_id=todos.id "
+  if cut_off
+    query << " AND (todos.created_at > ? OR "
+    query << "      todos.completed_at > ?) "
+  end
+  query << " GROUP BY tags.id, tags.name"
+  query << " ORDER BY count DESC, name"
+  query << " LIMIT 100"
+end
+```
+
+Update the call to this method to pass in the cutoff:
+
+```ruby
+@tags_90days = Tag.find_by_sql(
+  [sql_90days(@cut_off), user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
+```
+
+The `lockdown` test should still be passing.
+
+### Code Reuse
+
+Let's update the first query to use the `sql_90days` method instead of the
+`sql` method.
+
+Find this line of code:
+
+```ruby
+@tags = Tag.find_by_sql(
+  [sql, user.id]
+).sort_by { |tag| tag.name.downcase }
+```
+
+And update it to be like this:
+
+```ruby
+@tags = Tag.find_by_sql(
+  [sql_90days, user.id]
+).sort_by { |tag| tag.name.downcase }
+```
+
+The `lockdown` test should still be passing.
+
+The `sql` method is no longer in use. Go ahead and delete it.
+
+Finally, rename `sql_90days` to just be `sql`.
+
+Then run your test and commit your changes.
 
