@@ -31,8 +31,6 @@ Finished in 0.08985 seconds
 1 example, 0 failures
 
 Randomized with seed 52557
-
-$
 {% endterminal %}
 
 ## Workshop 1
