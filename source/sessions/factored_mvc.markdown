@@ -700,21 +700,36 @@ First, let's reformat the one-liner to be on 3 lines:
 ).sort_by { |tag| tag.name.downcase }
 ```
 
-Now the biggest difference between the two is that one of the method calls
-takes an array, whereas the other just takes a string.
-
-We can change it so that both of these take an array:
+The only difference is the second line. Let's assign that line to a variable
+named `params`:
 
 ```ruby
-@tags = Tag.find_by_sql(
-  [sql]
-).sort_by { |tag| tag.name.downcase }
+params = sql
+@tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+```
+
+```ruby
+params = [sql_90days, user.id, @cut_off, @cut_off]
+@tags_90days = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+```
+
+Notice how the second `params` is an array? Let's make the first one an array
+as well:
+
+```ruby
+params = [sql]
+@tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
 ```
 
 If you run the `lockdown` test, it should still be passing.
 
 Next, let's go ahead and add the `user.id` to the array, even though it
 doesn't get used yet.
+
+```ruby
+params = [sql, user.id]
+@tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+```
 
 The `lockdown` test is still passing`.
 
@@ -737,9 +752,7 @@ Notice the question marks in those two lines? This is where the
 `@cut_off` gets used in the call to `find_by_sql`:
 
 ```ruby
-@tags_90days = Tag.find_by_sql(
-  [sql_90days, user.id, @cut_off, @cut_off]
-).sort_by { |tag| tag.name.downcase }
+params = [sql_90days, user.id, @cut_off, @cut_off]
 ```
 
 So we can pass the cut off to the method and add an if statement around
@@ -763,12 +776,10 @@ def sql_90days(cut_off = nil)
 end
 ```
 
-Update the call to this method to pass in the cutoff:
+Update the params to pass in the cutoff to the `sql_90days` method:
 
 ```ruby
-@tags_90days = Tag.find_by_sql(
-  [sql_90days(@cut_off), user.id, @cut_off, @cut_off]
-).sort_by { |tag| tag.name.downcase }
+params = [sql_90days(@cut_off), user.id, @cut_off, @cut_off]
 ```
 
 The `lockdown` test should still be passing.
@@ -781,17 +792,13 @@ Let's update the first query to use the `sql_90days` method instead of the
 Find this line of code:
 
 ```ruby
-@tags = Tag.find_by_sql(
-  [sql, user.id]
-).sort_by { |tag| tag.name.downcase }
+params = [sql, user.id]
 ```
 
-And update it to be like this:
+and update it to be like this:
 
 ```ruby
-@tags = Tag.find_by_sql(
-  [sql_90days, user.id]
-).sort_by { |tag| tag.name.downcase }
+params = [sql_90days, user.id]
 ```
 
 The `lockdown` test should still be passing.
@@ -801,4 +808,110 @@ The `sql` method is no longer in use. Go ahead and delete it.
 Finally, rename `sql_90days` to just be `sql`.
 
 Then run your test and commit your changes.
+
+## I6: Two `TagCloud` Objects
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i5` tag.
+
+```bash
+git checkout -b iteration6 cloud.i5
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration6
+```
+
+Notice how the `TagCloud` essentially does the same thing twice, once with no
+restrictions, and then a second time with the `90_days` cut off?
+
+We've managed to reduce the duplication of the SQL query by using the
+`cut_off` to determine whether or not the result set should actually be
+restricted.
+
+Let's expand on that idea so that the whole tag cloud object is either
+unrestricted, or for a certain time period.
+
+### Optional Cut Off
+
+In the `TagCloud` initializer, make the `cut_off` parameter optional, with a
+default of `nil`:
+
+```ruby
+def initialize(user, cut_off = nil)
+  @user = user
+  @cut_off = cut_off
+end
+```
+
+Then create two tag clouds in the controller instead of one.
+
+The first does not take a `cut_off`, but the second still does.
+
+The controller method now looks like this:
+
+```ruby
+def get_stats_tags
+  cloud = TagCloud.new(current_user)
+  cloud.compute
+  @tags_for_cloud = cloud.tags
+  @tags_min = cloud.min
+  @tags_divisor = cloud.divisor
+
+  cloud = TagCloud.new(current_user, @cut_off_3months)
+  cloud.compute
+  @tags_for_cloud_90days = cloud.tags_90days
+  @tags_min_90days = cloud.min_90days
+  @tags_divisor_90days = cloud.divisor_90days
+end
+```
+
+This causes the `lockdown` test to fail because we have the wrong number of
+`bind` variables for the SQL queries.
+
+We now need to pass in the correct number of bind variables based on whether
+or not we actually have a value for `@cut_off` at all.
+
+Change both of the `params` assignments to look like this:
+
+```ruby
+params = [sql(@cut_off), user.id]
+if @cut_off
+  params += [@cut_off, @cut_off]
+end
+```
+
+The test should be passing again.
+
+In the controller method the first tag cloud is using the first half of the
+compute method, whereas the second tag cloud is using the second half of the
+compute method.
+
+Change the controller so that none of the calls to `cloud` call methods with
+`_90days` in them:
+
+```ruby
+def get_stats_tags
+  cloud = TagCloud.new(current_user)
+  cloud.compute
+  @tags_for_cloud = cloud.tags
+  @tags_min = cloud.min
+  @tags_divisor = cloud.divisor
+
+  cloud = TagCloud.new(current_user, @cut_off_3months)
+  cloud.compute
+  @tags_for_cloud_90days = cloud.tags
+  @tags_min_90days = cloud.min
+  @tags_divisor_90days = cloud.divisor
+end
+```
+
+The `lockdown` test should still be passing.
+
+Having done this we can delete anything in the `TagCloud` referring to
+`90days`.
+
+Run the `lockdown` test and commit your changes.
+
 
