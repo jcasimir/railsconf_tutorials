@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Integration Testing and Outside-In Development
+section: TDD Tools, Techniques, and Discipline
 sidebar: false
 ---
 

@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Testing Associations and Validations
+section: TDD Tools, Techniques, and Discipline
 sidebar: false
 ---
 
