@@ -1014,3 +1014,113 @@ end
 
 Run the test and commit your changes.
 
+## I8: Collapsing duplication in the view
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i7` tag.
+
+```bash
+git checkout -b iteration8 cloud.i7
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration8
+```
+
+Let's get those instance variables all the way out of the partial.
+
+Open up `app/views/stats/index.html.erb` and find the line that renders the
+`tags` partial:
+
+```erb
+<%= render :partial => 'tags' -%>
+```
+
+Let's pass the tag cloud objects as local variables to the partial.
+
+```erb
+<%= render :partial => 'tags', locals: { cloud: @cloud, cloud_90days:
+@cloud_90days } -%>
+```
+
+The test is still passing, but we're not using those local variables.
+
+Go into the `app/views/stats/_tags.html.erb` file and delete the `@`
+characters.
+
+When I did this I got another failure, but again it was just a bit of
+whitespace. I just went ahead and approved the new version of the output:
+
+```bash
+cp .lockdown/received.html .lockdown/approved.html
+```
+
+Now we can call the partial twice from the `index.html.erb` file, once for each tag cloud:
+
+```erb
+<%= render :partial => 'tags', locals: { cloud: @cloud } -%>
+<%= render :partial => 'tags', locals: { cloud: @cloud_90days } -%>
+```
+
+Before we run the tests, we need to delete the second half of the partial.
+
+Run the tests.
+
+Woah! We have more than just whitespace changes this time.
+
+It looks like we changed the following lines:
+
+```html
+<h3>Tag cloud actions in past 90 days</h3>
+<p>This tag cloud includes tags of actions that were created or completed in
+the past 90 days.</p>
+```
+
+```html
+<h3>Tag cloud for all actions</h3>
+<p>This tag cloud includes tags of all actions (completed, not completed,
+visible and/or hidden)</p>
+```
+
+We missed a spot.
+
+Two of the lines that we deleted looked like this:
+
+```erb
+<h3><%= t('stats.tag_cloud_90days_title') %></h3>
+<p><%= t('stats.tag_cloud_90days_description') %></p>
+```
+
+and the code that gets called instead looks like this:
+
+```erb
+<h3><%= t('stats.tag_cloud_title') %></h3>
+<p><%= t('stats.tag_cloud_description') %></p>
+```
+
+We need to update the translation key to include the `_90days` bit.
+
+Change the calls to render the partials like this:
+
+```erb
+<%= render :partial => 'tags', locals: { cloud: @cloud, :key => '' } -%>
+<%= render :partial => 'tags', locals: { cloud: @cloud_90days, :key => '_90days' } -%>
+```
+
+Also, update the translation keys in the `_tags.html.erb` partial:
+
+```erb
+<h3><%= t("stats.tag_cloud#{key}_title") %></h3>
+<p><%= t("stats.tag_cloud#{key}_description") %></p>
+```
+
+Running the tests again leaves us with only whitespace changes. Approve the
+new version of the output:
+
+```bash
+cp .lockdown/received.html .lockdown/approved.html
+```
+
+Commit your changes.
+
