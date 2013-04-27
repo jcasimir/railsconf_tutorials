@@ -18,7 +18,7 @@ john:
 ```
 
 The fixtures are loaded during test runs, and we can then access the fixtures in
-our specs:
+our specs. The call to `users(:john)` loads `john` from the fixtures file:
 
 ```ruby
 # spec/models/user_spec.rb
@@ -28,7 +28,7 @@ describe User, '.authenticate' do
   fixtures :all
 
   it 'authenticates with email and password' do
-    user = User.authenticate('john@example.com', 'example')
+    user = User.authenticate('john@example.com', 'secret')
     expect(user).to eq users(:john)
   end
 end
@@ -57,7 +57,7 @@ describe User, '.authenticate' do
 end
 ```
 
-This works well until we start adding other required fields to the object. Lets
+This works well until we start adding other required fields to the object. Let's
 say we add required fields `first_name`, `last_name`.
 
 ```ruby
@@ -85,9 +85,31 @@ models in your application. All tests will need to be updated.
 ## Factories (hello FactoryGirl)
 
 We can solve the issue of valid data by using Factories. Factories can be used
-to generate valid default values for the attributes of our models.
+to generate valid default values for the attributes of our models. We'll use the
+[factory girl][1] gem to generate our test data.
 
-We'll use [factory girl][1] to generate our test data.
+Tip: To avoid repeating `FactoryGirl` throughout our tests, we can include the
+syntax methods and omit the verboase syntax.
+
+```ruby
+RSpec.configure do |config|
+  config.include FactoryGirl::Syntax::Methods
+end
+```
+
+Before:
+
+```ruby
+FactoryGirl.create(:user, email: 'john@example.com', password: 'secret')
+```
+
+After:
+
+```ruby
+create(:user, email: 'john@example.com', password: 'secret')
+```
+
+Create a factory for our `user` object.
 
 ```ruby
 # spec/factories.rb
@@ -104,11 +126,12 @@ end
 Now that we've defined our factory for `user` we can use it in our tests.
 
 ```ruby
+# spec/models/user_spec.rb
 require 'spec_helper'
 
 describe User, '.authenticate' do
   it 'authenticates with email and password' do
-    user = FactoryGirl.create(:user, email: 'john@example.com', password: 'secret')
+    user = create(:user, email: 'john@example.com', password: 'secret')
 
     result = User.authenticate('john@example.com', 'secret')
 
