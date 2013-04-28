@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Working with 3rd party (external) services
+title: Working with 3rd party external services
 section: TDD Tools, Techniques, and Discipline
 sidebar: false
 ---
@@ -10,24 +10,37 @@ Tests should run in isolation.
 When integrating with external services we want to make sure our test suite
 isn't actually hitting any 3rd party service.
 
-Having the tests hit external services can cause issues:
+Requests to external services can cause issues like:
 
-* Slow's down test runs dramatically
-* Hitting API rate limits on 3rd party sites (twitter, etc)
-* 3rd party doesn't have a testing (sandbox) server
+* Dramatically slower tests
+* Hitting API rate limits on 3rd party sites (e.g. Twitter)
+* 3rd party doesn't have a testing or sandbox server
 * Service may not exist
+* Can't run tests without a network connection
+* Tests can fail if service responses change
 
 ## Webmock
 
-The first step in making sure out test suite doesn't make external requests is to
-install a gem such as [webmock][1].
+We will use [webmock][1], a gem which helps in mocking out external web
+requests. In this example we'll search the [Twitter API for RailsConf][4].
 
-In this example we'll search the [Twitter api for RailsConf][4].
+First, let's make sure out test suite doesn't make external requests by setting
+it in the `spec_helper.rb`:
+
+```ruby
+# spec/spec_helper.rb
+    ...
+    WebMock.disable_net_connect!(allow_localhost: true)
+    ...
+```
+
+Now if your test suite tries to make any external requests it will raise an
+exception and break the build:
 
 ```ruby
 # spec/features/external_request_spec.rb
 feature 'External request' do
-  it 'queries twitter search endpoint' do
+  it 'queries Twitter search endpoint' do
     uri = URI('http://search.twitter.com/search.json?q=railsconf&rpp=1')
 
     response = Net::HTTP.get(uri)
@@ -37,16 +50,13 @@ feature 'External request' do
 end
 ```
 
-If your testsuite tries to make any external requests it will raise an exception
-and break the build.
-
 {% terminal %}
 $ rspec spec/features/external_request_spec.rb
 F
 
 Failures:
 
-  1) External request queries twitter search endpoint
+  1) External request queries Twitter search endpoint
      Failure/Error: response = Net::HTTP.get(uri)
      WebMock::NetConnectNotAllowedError:
        Real HTTP connections are disabled. Unregistered request: GET http://search.twitter.com/search.json?q=railsconf&rpp=1 with headers {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}
@@ -54,8 +64,8 @@ Failures:
        You can stub this request with the following snippet:
 
        stub_request(:get, "http://search.twitter.com/search.json?q=railsconf&rpp=1").
-         with(:headers => {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-         to_return(:status => 200, :body => "", :headers => {})
+         with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
+         to_return(status: 200, body: "", headers: {})
 
        ============================================================
      # ./spec/features/external_request_spec.rb:7:in `block (2 levels) in <top (required)>'
@@ -64,16 +74,17 @@ Failures:
 We can fix this by stubbing any external requests with webmock.
 
 ```ruby
+# spec/spec_helper.rb
 RSpec.configure do |config|
   config.before(:each) do
     stub_request(:get, /search.twitter.com/).
-       with(:headers => {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-       to_return(:status => 200, :body => "fake response", :headers => {})
+       with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
+       to_return(status: 200, body: "fake response", headers: {})
   end
 end
 ```
 
-Run the test again and it will now pass.
+Run the test again and now it will pass.
 
 {% terminal %}
 $ rspec spec/features/external_request_spec.rb
@@ -85,28 +96,34 @@ Finished in 0.01116 seconds
 
 ## VCR
 
-The [vcr][2] gem has a concept of `cassettes` which will record your test suites
-outgoing HTTP requests and then replay them for future test runs.
+Another approach for preventing external requests is to record a live
+interaction and 'replay' it back during tests.  The [VCR][2] gem has a concept
+of `cassettes` which will record your test suites outgoing HTTP requests and
+then replay them for future test runs.
 
-Things to think about with vcr:
+Considerations when using VCR:
 
-* Needs exteral service to be available for first test run.
-* How to share cassettes with other developers (check in to git repo?)
+* Needs the external service to be available for first test run.
+* Must clarify how cassettes are shared with other developers (check in to git
+  repo?)
 
-## Create a Fake (hello Sinatra)
+## Create a Fake (Hello Sinatra!)
 
-Creating fake services with [Sinatra][3]. This will let us test in total isolation
-and control the responses to our test suite.
+When your application depends heavily on a third party service, consider
+building a fake service inside your application with [Sinatra][3]. This will let
+us test in total isolation and control the responses to our test suite.
 
+First we use Webmock to route all requests to our Sinatra application,
+`FakeTwitter`.
 ```ruby
 RSpec.configure do |config|
-  endonfig.befere(:each) do
+  config.before(:each) do
     stub_request(:any, /search.twitter.com/).to_rack(FakeTwitter)
   end
 end
 ```
 
-Create the `FakeTwitter` server using Sinatra.
+Now let's create the `FakeTwitter` application using Sinatra.
 
 ```ruby
 # spec/support/fake_twitter.rb
@@ -127,7 +144,7 @@ class FakeTwitter < Sinatra::Base
 end
 ```
 
-Download a the [Twitter search results][4] and store in a local file.
+Download the [Twitter search results][4] and store in a local file.
 
 ```ruby
 # spec/support/fixtures/twitter_search.json
@@ -165,11 +182,11 @@ Download a the [Twitter search results][4] and store in a local file.
 }
 ```
 
-Update the test to verify the fake response it being returned.
+Update the test to verify the fake response is being returned.
 
 ```ruby
 feature 'External request' do
-  it 'queries twitter search endpoint' do
+  it 'queries Twitter search endpoint' do
     uri = URI('http://search.twitter.com/search.json?q=railsconf&rpp=1')
 
     response = JSON.load(Net::HTTP.get(uri))
@@ -189,13 +206,12 @@ Finished in 0.04713 seconds
 1 example, 0 failures
 {% endterminal %}
 
-Downsides to a Fake:
+There are some downsides to using a fake:
 
-* Building and Maintaining a fake version of the service
-* If your fake gets out of sync with the service
+* Maintaining a fake version of the service takes time
+* Your fake can get out of sync with the service
 
 [1]: https://github.com/bblimke/webmock
 [2]: https://github.com/vcr/vcr
 [3]: http://www.sinatrarb.com/
 [4]: http://search.twitter.com/search.json?q=railsconf&rpp=1
-
