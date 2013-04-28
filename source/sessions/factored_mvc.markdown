@@ -1124,3 +1124,205 @@ cp .lockdown/received.html .lockdown/approved.html
 
 Commit your changes.
 
+## I9: Polishing up the TagCloud
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i8` tag.
+
+```bash
+git checkout -b iteration9 cloud.i8
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration9
+```
+
+### Status
+
+So far we've managed to reduce the amount of code in the controller method
+from 50 lines to 4 lines.
+
+We've added a model, `TagCloud`, where we deleted about half of the original
+code that was in the controller.
+
+We've also deleted about half of the code in the view layer.
+
+What could possibly be left to do here?
+
+Well, I'm not very happy with how the `TagCloud` class turned out. We can do
+better.
+
+There's a lot of bits and pieces here.
+
+First, let's move the `TODO` comment down to the big `sql` method.
+
+Next, create a private method called `levels` and have it return the value 10.
+
+Delete the `levels = 10` line from the compute method.
+
+The `lockdown` test should still be passing.
+
+Let's create a public method called `tags`:
+
+```ruby
+def tags
+  params = [sql(@cut_off), user.id]
+  if @cut_off
+    params += [@cut_off, @cut_off]
+  end
+  @tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+end
+```
+
+Notice that we've copied the first 5 lines of the `compute` method into it.
+
+Let's get rid of the assignment on the last line:
+
+```ruby
+def tags
+  params = [sql(@cut_off), user.id]
+  if @cut_off
+    params += [@cut_off, @cut_off]
+  end
+  Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+end
+```
+
+And now in `compute` after the line with the assignment in it, create a new
+assignment that calls the tags method:
+
+```ruby
+def compute
+  params = [sql(@cut_off), user.id]
+  if @cut_off
+    params += [@cut_off, @cut_off]
+  end
+  @tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+  @tags = tags
+  # ...
+end
+```
+
+Run the test. It passes, so we can delete the 5 lines above our new
+assignment.
+
+The tests are passing, but we have some weirdness. We have an `attr_reader`
+for `:tags` and we also have a method for `tags`.
+
+We can change the method for `tags` to assign the results of the database
+call the first time that it gets called:
+
+```ruby
+def tags
+  unless @tags
+    params = [sql(@cut_off), user.id]
+    if @cut_off
+      params += [@cut_off, @cut_off]
+    end
+    @tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+  end
+  @tags
+end
+```
+
+Delete the `@tags = tags` assignment in `compute`, and change the remaining
+reference to `@tags` in `compute` to `tags`.
+
+Delete the `attr_reader` for `:tags` as well.
+
+Run the test. It should be passing.
+
+Commit your changes.
+
+Take a look at the code that calculates that `min` and `max` tag counts:
+
+```ruby
+max, @min = 0, 0
+tags.each { |t|
+  max = [t.count.to_i, max].max
+  @min = [t.count.to_i, @min].min
+}
+```
+
+First of all, min is always 0, because we never get negative counts out of our
+sql query.
+
+So we can simplify:
+
+```ruby
+max, @min = 0, 0
+tags.each { |t|
+  max = [t.count.to_i, max].max
+}
+```
+
+Next, nstead of checking at every step of the way in the iteration, let's
+create a variable called `tag_counts` below this section, which is a simple
+array of the counts:
+
+```ruby
+tag_counts = tags.map {|t| t.count.to_i}
+```
+
+Then, we'll get the max from that array:
+
+```ruby
+max = tag_counts.max
+```
+
+The test is still passing, so we can delete the old code, leaving us with
+this `compute` method:
+
+```ruby
+def compute
+  @min = 0
+  tag_counts = tags.map {|t| t.count.to_i}
+  max = tag_counts.max
+
+  @divisor = ((max - @min) / levels) + 1
+end
+```
+
+We can create a public method called min that just returns `0`, and delete
+the `attr_reader` for it. Make sure to change `@min` to `min` in the computation
+for `@divisor`.
+
+Run the test.
+
+Next, let's extract the `tag_counts` to a private method:
+
+```ruby
+def tag_counts
+ @tag_counts ||= tags.map {|t| t.count.to_i}
+end
+```
+
+Run the test.
+
+Extract `max` to a private method:
+
+```ruby
+def max
+  tag_counts.max
+end
+```
+
+Run the test.
+
+Extract divisor to a public method:
+
+```ruby
+def divisor
+  @divisor ||= ((max - min) / levels) + 1
+end
+```
+
+Run the test.
+
+This leaves us with an empty compute method. Delete it. Remember to delete the
+call to compute from the controller as well.
+
+Run the `lockdown` test, as well as the `wip` rake task, and then commit your
+changes.
+
