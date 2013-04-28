@@ -58,6 +58,7 @@ $ cp config/initializers/sms.rb.sample config/initializers/sms.rb
 {% endterminal %}
 
 Now, you'll want to edit the sms.rb and fill out:
+
 ```ruby
 Beeper.config do |config|
   config.twilio_phone_number = '' # The phone number twilio gave you
@@ -72,7 +73,7 @@ Let's test out and make sure you can send texts
 
 {% terminal %}
 $ bundle exec rake beeper:test:sms
-{% terminal %}
+{% endterminal %}
 
 You should receive a text instantly. If you don't, you'll need to check the
 config values.
@@ -102,7 +103,7 @@ If we refresh our browser, we'll see the alarms:
 
 But!!! We weren't notified. Let's put the Beeper in this Beeper app!
 
-## Add Beeper
+## Section 1: Notification via SMS
 
 Open up the Alarms Controller.  The two methods we care about here are the
 
@@ -277,11 +278,11 @@ to all controllers.
 
 Now, when you refresh your browser, you'll be redirected to a login page.
 
-![we-have-alarms](/images/rails-is-just-ruby-3.png)
+![we-have-alarms](/images/rails-is-just-ruby-4.png)
 
 Enter: `supersecret` and you'll magically gain access again
 
-### Advanced / Homework
+## Advanced / Homework
 
 * prevent more than 1 notification from being sent
 * Rather than sending a block, you could use a lambda and send in actions:
