@@ -226,7 +226,7 @@ Delayed::Job.enqueue(HelloEmailJob.new(user))
 This custom job allows you to put more logic in the custom job class, specify
 job priorities, and add job lifecycle callbacks.
 
-Testing it would look like this:
+Testing it in the `user_spec` would look like this:
 ```ruby
 it 'should enqueue a new HelloMail job' do
   Delayed::Job.stubs(:enqueue)
@@ -235,9 +235,180 @@ it 'should enqueue a new HelloMail job' do
   hello_email_job = HelloEmailJob.new(user)
 
   expect(Delayed::Job.to have_received(:enqueue).
-    with(hello_email_job
+    with(hello_email_job)
 end
 ```
+
+Testing the job itself would look like this:
+```ruby
+require 'spec_helper'
+
+describe HelloEmailJob, '#perform' do
+  it 'sends the hello email' do
+    Mailer.stubs(:hello)
+    user = create(:user)
+
+    HelloEmailJob.new(user).perform
+
+    expect(Mailer).to have_received(:hello).with(user)
+  end
+end
+```
+
+## Testing things which depend on time
+
+Time is confusing and can be difficult to test. For example, if you send an
+email one hour after a User signs up, you have to contend with time zones and
+how long it takes for the test to run.
+
+Let's send our email one hour after signing up. First let's write a test for the
+`enqueue` class method:
+
+```ruby
+# spec/jobs/hello_email_job_spec.rb
+require 'spec_helper'
+
+describe HelloEmailJob, '#enqueue' do
+  it 'enqueues the job' do
+    Delayed::Job.stubs(:enqueue)
+    user = build_stubbed(:user)
+    hello_job = HelloEmailJob.new(user)
+
+    HelloEmailJob.enqueue(user)
+
+    expect(Delayed::Job).to have_received(:enqueue).
+      with(hello_job, run_at: 1.hour.from_now)
+  end
+end
+
+describe HelloEmailJob, '#perform' do
+  it 'sends the hello email' do
+    Mailer.stubs(:hello)
+    user = create(:user)
+
+    HelloEmailJob.new(user).perform
+
+    expect(Mailer).to have_received(:hello).with(user)
+  end
+end
+```
+
+And let's try to get it to pass with some code:
+
+```ruby
+# app/jobs/hello_email_job.rb
+class HelloEmailJob < Struct.new(:user)
+  def self.enqueue(user)
+    Delayed::Job.enqueue(
+      new(user),
+      run_at: 1.hour.from_now
+    )
+  end
+
+  def perform
+    Mailer.hello(user)
+  end
+end
+```
+
+Looks good, but we get a weird error:
+
+{% terminal %}
+F
+
+Failures:
+
+  1) HelloEmailJob#enqueue enqueues the job
+     Failure/Error: expect(Delayed::Job).to have_received(:enqueue).
+       expected exactly once, not yet invoked:
+Delayed::Backend::ActiveRecord::Job(id: integer, priority: integer, attempts:
+integer, handler: text, last_error: text, run_at: datetime, locked_at: datetime,
+failed_at: datetime, locked_by: string, queue: string, created_at: datetime,
+updated_at: datetime).enqueue(#<HelloEmailJob:0x7fbbc48dab58>, {:run_at => Sun,
+28 Apr 2013 19:46:18 UTC +00:00})
+     # ./spec/jobs/hello_email_job_spec.rb:12:in `block (2 levels) in <top
+(required)>'
+
+Finished in 0.01888 seconds
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/jobs/hello_email_job_spec.rb:4 # HelloEmailJob#enqueue enqueues the
+job
+{% endterminal %}
+
+What the what? This broke because the time we are comparing is too specific.
+Let's use [Timecop][4] to freeze time:
+
+```ruby
+# spec/jobs/hello_email_job_spec.rb
+require 'spec_helper'
+
+describe HelloEmailJob, '#enqueue' do
+  it 'enqueues the job' do
+    Timecop.freeze do
+      Delayed::Job.stubs(:enqueue)
+      user = build_stubbed(:user)
+      hello_job = HelloEmailJob.new(user)
+
+      HelloEmailJob.enqueue(user)
+
+      expect(Delayed::Job).to have_received(:enqueue).
+        with(hello_job, run_at: 1.hour.from_now)
+    end
+  end
+end
+
+describe HelloEmailJob, '#perform' do
+  it 'sends the hello email' do
+    Mailer.stubs(:hello)
+    user = create(:user)
+
+    HelloEmailJob.new(user).perform
+
+    expect(Mailer).to have_received(:hello).with(user)
+  end
+end
+```
+
+And it passes. We can do more with Timecop include travel forward/backward in
+time and run your tests like you're Marty McFly.
+
+All we have to do is now just enqueue this job from our User callback:
+```ruby
+# spec/models/user_spec.rb
+require 'spec_helper'
+
+describe User, 'callbacks' do
+  it 'enqueues a welcome email after creation' do
+    HelloEmailJob.stubs(:enqueue)
+
+    user = create(:user)
+
+    expect(HelloEmailJob).to have_received(:enqueue).with(user)
+  end
+end
+```
+
+And pass it with this call:
+```ruby
+# app/models/user.rb
+class User < ActiveRecord::Base
+  attr_accessible :email, :name
+
+  after_create :send_hello_email
+
+  private
+
+  def send_hello_email
+    HelloEmailJob.enqueue(self)
+  end
+end
+```
+
+This call is much cleaner, and we've encapsulated the work in a separate class,
+which is super nice.
 
 ## Conclusion
 There are other job queue handlers out there, notably [Resque][3] which runs on
@@ -247,3 +418,4 @@ using unless you have a ton of traffic, or already use Redis.
 [1]: http://en.wikipedia.org/wiki/FIFO
 [2]: https://github.com/collectiveidea/delayed_job
 [3]: https://github.com/resque/resque
+[4]: https://github.com/travisjeffery/timecop
