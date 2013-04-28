@@ -27,12 +27,14 @@ well over 200 forks, and is still under active development.
 
 ### Code Base
 
-0. `git clone git://github.com/jumpstartlab/tracks.git`
-1. `cp config/site.yml.tmpl config/site.yml`
-2. `cp config/database.yml.tmpl config/database.yml`
-3. `bundle install`
-4. `bundle exec rake db:create db:migrate db:test:prepare`
-5. `bundle exec rake wip`
+0. Fork the repository at https://github.com/jumpstartLab/tracks
+1. Clone your fork: `git clone git://github.com/<you>/tracks.git`
+2. Add your repository to [Code Climate](https://codeclimate.com/github/signup).
+3. `cp config/site.yml.tmpl config/site.yml`
+4. `cp config/database.yml.tmpl config/database.yml`
+5. `bundle install`
+6. `bundle exec rake db:create db:migrate db:test:prepare`
+7. `bundle exec rake wip`
 
 **NOTE**: `wip` stands for _work in progress_.
 
@@ -1410,4 +1412,17 @@ Let's run the `rake wip` task to be sure that everything is still good. The
 tests are all green.
 
 Pat your self on the back, and commit your code.
+
+## I11: Retrospective
+
+Push your changes up to github.
+
+Go to your page on Code Climate and look at the changes that were introduced.
+
+* Did the overall GPA change?
+* What is the complexity metric for the `StatsController`?
+* What is the duplication metric for the `StatsController`?
+* What is the score of the new `TagCloud` class?
+
+
 
