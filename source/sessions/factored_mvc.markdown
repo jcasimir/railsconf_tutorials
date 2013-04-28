@@ -1326,3 +1326,88 @@ call to compute from the controller as well.
 Run the `lockdown` test, as well as the `wip` rake task, and then commit your
 changes.
 
+## I10: Polishing Up the View
+
+If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i9` tag.
+
+```bash
+git checkout -b iteration10 cloud.i9
+```
+
+Otherwise just create a new branch based on the current state of your code:
+
+```bash
+git checkout -b iteration10
+```
+
+Open up the tag cloud partial `app/views/stats/_tags.html.erb`. There's a big
+calculation here:
+
+```erb
+(9 + 2*(t.count.to_i-cloud.min)/cloud.divisor)
+```
+
+This calculates the relative font size for a tag. A font size is definitely a
+view concern, but it seems like part of that calculation wants to live in the tag
+cloud itself.
+
+Let's create a method in the `TagCloud` called `relative_size` which takes a tag, and put the non-font part of the calculation into it:
+
+```ruby
+def relative_size(tag)
+  (t.count.to_i - cloud.min) / cloud.divisor
+end
+```
+
+`t` is now called `tag`:
+
+```ruby
+def relative_size(tag)
+  (tag.count.to_i - cloud.min) / cloud.divisor
+end
+```
+
+And we're inside the cloud object, so we don't need to refer to the `cloud`
+variable:
+
+```ruby
+def relative_size(tag)
+  (tag.count.to_i - min) / divisor
+end
+```
+
+Update the view to use this:
+
+```erb
+(9 + 2*cloud.relative_size(t))
+```
+
+This is better, but we still probably shouldn't have the calculation in the
+view. Let's create a helper method for it.
+
+Open up the `app/helpers/stats_helper.rb` and add the following:
+
+```ruby
+def font_size(cloud, tag)
+  9 + 2 * cloud.relative_size(tag)
+end
+```
+
+Update the view again:
+
+```erb
+:style => "font-size: #{font_size(cloud, t)}pt"
+```
+
+The `lockdown` test is passing.
+
+`min` and `divisor` are no longer referenced outside of the `TagCloud` so we
+can make those methods private.
+
+The `lockdown` test is passing.
+
+Let's run the `rake wip` task to be sure that everything is still good. The
+tests are all green.
+
+Pat your self on the back, and commit your code.
+
