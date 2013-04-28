@@ -7,13 +7,14 @@ sidebar: true
 Rails: the result of magical incantations, voodoo, and wizardry? Or: a
 collection of patterns from the most awesomest language in the world (Ruby)?
 
+
 ## Let's All Be Happy
 
 1. Before Filters
 2. Blocks
 3. Callbacks
 
-[TODO: Link to slides](http://speakerdeck.com/#)
+[Slides](https://speakerdeck.com/jwo/rails-is-just-ruby)
 
 ## Workshop
 
@@ -292,3 +293,12 @@ Enter: `supersecret` and you'll magically gain access again
     :critical => ->(alarm) {Beeper::SMS.notify("hi!")}
    }
 ```
+
+## About Speaker
+
+* Jesse Wolgamott
+* [Freelance Ruby Dev in Houston, Texas](http://comalproductions.com)
+* [Ruby Off Rails](http://rubyoffrails.com)
+* Twitter: [@jwo](http://twitter.com/jwo)
+* GitHub: [@jwo](http://github.com/jwo)
+* [More Talks](https://speakerdeck.com/jwo/rails-is-just-ruby)
