@@ -3,6 +3,10 @@ require 'sinatra'
 
 $root = ::File.dirname(__FILE__)
 
+get('/chat') do
+  redirect 'https://jumpstartlab.campfirenow.com/9587e'
+end
+
 get(/.+/) do
   send_sinatra_file(request.path) {404}
 end
