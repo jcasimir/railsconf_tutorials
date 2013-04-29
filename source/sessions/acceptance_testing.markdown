@@ -18,7 +18,9 @@ As a group let's go over the key ideas including:
 * How a test is constructed and run
 * Developing with a failing test
 
-[TODO: Link to slides](http://speakerdeck.com/#)
+<div style="width:800px; margin-bottom: 20px;">
+<script async class="speakerdeck-embed" data-id="9072f83093360130e0ef365a596da230" data-ratio="1.72972972972973" src="//speakerdeck.com/assets/embed.js"></script></div>
+
 
 ## Workshop
 
