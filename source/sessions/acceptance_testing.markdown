@@ -21,6 +21,9 @@ As a group let's go over the key ideas including:
 <div style="width:800px; margin-bottom: 20px;">
 <script async class="speakerdeck-embed" data-id="9072f83093360130e0ef365a596da230" data-ratio="1.72972972972973" src="//speakerdeck.com/assets/embed.js"></script></div>
 
+Here's the repo for the examples we'll work on during the session:
+
+https://github.com/integrallis/learn-rspec-capybara
 
 ## Workshop
 
