@@ -19,22 +19,25 @@ well over 200 forks, and is still under active development.
 
 ### Prerequisites
 
-* ruby 1.9.3
-* bundler
-* firefox (cucumber features)
-  I have a .dmg that can be passed around if necessary
+* [Ruby 1.9.3](https://rvm.io/)
+* [Bundler](http://gembundler.com/)
+* [Firefox](http://www.mozilla.org/en-US/firefox/new/)
 
+Firefox is necessary to run some Cucumber features. A DMG is available if downloading it is not possible.
 
 ### Code Base
 
-0. Fork the repository at https://github.com/jumpstartLab/tracks
-1. Clone your fork: `git@github.com:<you>/tracks.git`
-2. Add your repository to [Code Climate](https://codeclimate.com/github/signup).
-3. `cp config/site.yml.tmpl config/site.yml`
-4. `cp config/database.yml.tmpl config/database.yml`
-5. `bundle install`
-6. `bundle exec rake db:create db:migrate db:test:prepare`
-7. `bundle exec rake wip`
+[Fork](https://github.com/JumpstartLab/tracks/fork) the repository at https://github.com/jumpstartLab/tracks and your repository to [Code Climate](https://codeclimate.com/github/signup).
+
+{% terminal %}
+$ git clone git@github.com:YOURNAME/tracks.git
+$ cd tracks
+$ cp config/site.yml.tmpl config/site.yml
+$ cp config/database.yml.tmpl config/database.yml
+$ bundle install
+$ bundle exec rake db:create db:migrate db:test:prepare
+$ bundle exec rake wip
+{% endterminal %}
 
 **NOTE**: `wip` stands for _work in progress_.
 
@@ -68,8 +71,10 @@ We will be working on a small portion of the `StatsController`.
 Run the `bundle exec rake wip` task and then open up `coverage/index.html`
  in your browser.
 
-On a mac you can do this by saying `open coverage/index.html` on the
-command line.
+{% terminal %}
+$ bundle exec rake wip
+$ open coverage/index.html
+{% endterminal %}
 
 This will not represent the full coverage of the entire project, only
 the coverage when running the handful of tests in the `wip` task.
@@ -86,11 +91,19 @@ that looks like this:
 <%= render :partial => 'tags' -%>
 ```
 
-Run `bundle exec rake wip` again.
+Run the tests again
+
+{% terminal %}
+$ bundle exec rake wip
+{% endterminal %}
 
 * How many tests fail?
 
-Run the command `git checkout .` to put the deleted code back.
+Now, restore the files to their original state
+
+{% terminal %}
+$ git checkout .
+{% endterminal %}
 
 ### A lockdown test
 
@@ -102,9 +115,9 @@ We need a test that will fail if we change anything in the `get_stats_tags` meth
 
 Run the following command:
 
-```bash
-git checkout -b iteration1 cloud.i1
-```
+{% terminal %}
+$ git checkout -b iteration1 cloud.i1
+{% endterminal %}
 
 This creates a new branch named `iteration1` based off of the git tag
 named `cloud.i1`.
@@ -112,9 +125,9 @@ named `cloud.i1`.
 In the tag `cloud.i1` we've added a new test file `test/functional/lockdown_test.rb`.
 An additional rake task in `lib/tasks/wip.rake` is set up to run this test.
 
-```bash
-bundle exec rake test:lockdown
-```
+{% terminal %}
+$ bundle exec rake test:lockdown
+{% endterminal %}
 
 Go ahead and run the test, which will fail.
 
@@ -137,11 +150,15 @@ For the purposes of this refactoring, we're going to assume that the
 
 Approve the test by copying the received file over the approved file:
 
-```bash
-cp .lockdown/received.html .lockdown/approved.html
-```
+{% terminal %}
+$ cp .lockdown/received.html .lockdown/approved.html
+{% endterminal %}
 
-If you run `bundle exec rake test:lockdown` again, the test should pass.
+Run the tests again. They should pass.
+
+{% terminal %}
+$ bundle exec rake test:lockdown
+{% endterminal %}
 
 Open up the `app/views/stats/index.html.erb` file and delete the line that
 looks like this again:
@@ -150,9 +167,17 @@ looks like this again:
 <%= render :partial => 'tags' -%>
 ```
 
-Run `bundle exec rake test:lockdown` again. It should fail.
+Run the tests again. They should fail.
 
-Reset the code with `git checkout .`. We're ready to refactor.
+{% terminal %}
+$ bundle exec rake test:lockdown
+{% endterminal %}
+
+When you are done reset the code again because we are ready to refactor
+
+{% terminal %}
+$ git checkout .
+{% endterminal %}
 
 Commit your changes.
 
@@ -160,12 +185,11 @@ Commit your changes.
 
 Check out a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration2
-```
+{% terminal %}
+$ git checkout -b iteration2
+{% endterminal %}
 
-We're going to be refactoring the `get_stats_tags` method in the
-`StatsController`.
+We're going to be refactoring `StatsController#get_stats_tags`.
 
 * How long is the method?
 * How many instance variables does it assign?
@@ -238,15 +262,16 @@ Commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i2` tag.
 
-```bash
-git checkout -b iteration3 cloud.i2
-```
+
+{% terminal %}
+$ git checkout -b iteration3 cloud.i2
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration3
-```
+{% terminal %}
+$ git checkout -b iteration3
+{% endterminal %}
 
 First, let's assign the `TagCloud` object that we're creating in the `StatsController#get_stats_tags` method:
 
@@ -467,15 +492,15 @@ Commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i3` tag.
 
-```bash
-git checkout -b iteration4 cloud.i3
-```
+{% terminal %}
+$ git checkout -b iteration4 cloud.i3
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration4
-```
+{% terminal %}
+$ git checkout -b iteration4
+{% endterminal %}
 
 ### Current User is not Current
 
@@ -542,15 +567,15 @@ Run the `lockdown` test, and commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i4` tag.
 
-```bash
-git checkout -b iteration5 cloud.i4
-```
+{% terminal %}
+$ git checkout -b iteration5 cloud.i4
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration5
-```
+{% terminal %}
+$ git checkout -b iteration5
+{% endterminal %}
 
 Let's start dealing with that big `compute` method.
 
@@ -815,15 +840,15 @@ Then run your test and commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i5` tag.
 
-```bash
-git checkout -b iteration6 cloud.i5
-```
+{% terminal %}
+$ git checkout -b iteration6 cloud.i5
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration6
-```
+{% terminal %}
+$ git checkout -b iteration6
+{% endterminal %}
 
 Notice how the `TagCloud` essentially does the same thing twice, once with no
 restrictions, and then a second time with the `90_days` cut off?
@@ -920,15 +945,15 @@ Run the `lockdown` test and commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i6` tag.
 
-```bash
-git checkout -b iteration7 cloud.i6
-```
+{% terminal %}
+$ git checkout -b iteration7 cloud.i6
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration7
-```
+{% terminal %}
+$ git checkout -b iteration7
+{% endterminal %}
 
 Open up the `app/views/stats/_tags.html.erb` file. This is the template for
 our tag cloud.
@@ -969,22 +994,16 @@ The tests failed when I did this.
 
 Take a look at the diff of the files, though:
 
-```bash
-diff .lockdown/received.html .lockdown/approved.html
-```
+{% terminal %}
+$ diff .lockdown/received.html .lockdown/approved.html
+{% endterminal %}
 
 The only difference is a single line of extra whitespace. I'm OK with that, so
 I'm going to approve the new file:
 
-```bash
-```
-
-The only difference is a single line of extra whitespace. I'm OK with that, so
-I'm going to approve the new file:
-
-```bash
-cp .lockdown/received.html .lockdown/approved.html
-```
+{% terminal %}
+$ cp .lockdown/received.html .lockdown/approved.html
+{% endterminal %}
 
 Next replace `@tags_min` with `@cloud.min` and run the test.
 
@@ -1020,15 +1039,15 @@ Run the test and commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i7` tag.
 
-```bash
-git checkout -b iteration8 cloud.i7
-```
+{% terminal %}
+$ git checkout -b iteration8 cloud.i7
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration8
-```
+{% terminal %}
+$ git checkout -b iteration8
+{% endterminal %}
 
 Let's get those instance variables all the way out of the partial.
 
@@ -1054,9 +1073,9 @@ characters.
 When I did this I got another failure, but again it was just a bit of
 whitespace. I just went ahead and approved the new version of the output:
 
-```bash
-cp .lockdown/received.html .lockdown/approved.html
-```
+{% terminal %}
+$ cp .lockdown/received.html .lockdown/approved.html
+{% endterminal %}
 
 Now we can call the partial twice from the `index.html.erb` file, once for each tag cloud:
 
@@ -1120,9 +1139,9 @@ Also, update the translation keys in the `_tags.html.erb` partial:
 Running the tests again leaves us with only whitespace changes. Approve the
 new version of the output:
 
-```bash
-cp .lockdown/received.html .lockdown/approved.html
-```
+{% terminal %}
+$ cp .lockdown/received.html .lockdown/approved.html
+{% endterminal %}
 
 Commit your changes.
 
@@ -1130,15 +1149,15 @@ Commit your changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i8` tag.
 
-```bash
-git checkout -b iteration9 cloud.i8
-```
+{% terminal %}
+$ git checkout -b iteration9 cloud.i8
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration9
-```
+{% terminal %}
+$ git checkout -b iteration9
+{% endterminal %}
 
 ### Status
 
@@ -1332,15 +1351,15 @@ changes.
 
 If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i9` tag.
 
-```bash
-git checkout -b iteration10 cloud.i9
-```
+{% terminal %}
+$ git checkout -b iteration10 cloud.i9
+{% endterminal %}
 
 Otherwise just create a new branch based on the current state of your code:
 
-```bash
-git checkout -b iteration10
-```
+{% terminal %}
+$ git checkout -b iteration10
+{% endterminal %}
 
 Open up the tag cloud partial `app/views/stats/_tags.html.erb`. There's a big
 calculation here:
@@ -1423,6 +1442,3 @@ Go to your page on Code Climate and look at the changes that were introduced.
 * What is the complexity metric for the `StatsController`?
 * What is the duplication metric for the `StatsController`?
 * What is the score of the new `TagCloud` class?
-
-
-
