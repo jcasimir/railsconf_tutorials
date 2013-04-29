@@ -7,13 +7,6 @@ sidebar: true
 Rails: the result of magical incantations, voodoo, and wizardry? Or: a
 collection of patterns from the most awesomest language in the world (Ruby)?
 
-
-## Let's All Be Happy
-
-1. Before Filters
-2. Blocks
-3. Callbacks
-
 [Slides](https://speakerdeck.com/jwo/rails-is-just-ruby)
 
 ## Workshop
@@ -53,6 +46,18 @@ $ rake db:create db:migrate
 5. Get the two values (SID and Token):
 
 ![empty-alarms](/images/rails-is-just-ruby-1.png)
+
+#### If Twilio takes too long (5 minutes max), use these values below:
+
+```ruby
+Beeper.config do |config|
+  config.twilio_phone_number  = '(281) 940-8409'
+  config.twilio_sid           = 'AC98c1274bcab7b6beb8f4164f61e00836'
+  config.twilio_auth_token    = '01d11a589086716b617708f8c88385b5'
+  config.your_phone_number    = 'XXX'
+  config.your_email_address   = 'XXX'
+end
+```
 
 {% terminal %}
 $ cp config/initializers/sms.rb.sample config/initializers/sms.rb
