@@ -27,7 +27,7 @@ Firefox is necessary to run some Cucumber features. A DMG is available if downlo
 
 ### Code Base
 
-[Fork](https://github.com/JumpstartLab/tracks/fork) the repository at https://github.com/jumpstartLab/tracks and your repository to [Code Climate](https://codeclimate.com/github/signup).
+[Fork](https://github.com/JumpstartLab/tracks/fork) the repository at https://github.com/jumpstartLab/tracks and put your repository on [Code Climate](https://codeclimate.com/github/signup).
 
 {% terminal %}
 $ git clone git@github.com:YOURNAME/tracks.git
