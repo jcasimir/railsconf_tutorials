@@ -47,7 +47,6 @@ Outward-in devleopment, unit tests, and fixture data.
 
 Mocking, stubbing, and faking external services.
 
-- [Introduction and quick recap from Session 1][8]
 - [Limiting test scope][9]
 - [Running background processes][10]
 - [Working with 3rd party external services][11]
