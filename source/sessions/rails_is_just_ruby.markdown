@@ -138,7 +138,7 @@ $ rake alarm:report service=email
 
 DING! (you should have received a text)
 
-And, let's do the same when an alarm clears (it stops being a problem)
+And, let's do the same when an alarm closes (it stops being a problem)
 
 ```ruby
   def destroy
@@ -150,10 +150,10 @@ And, let's do the same when an alarm clears (it stops being a problem)
   end
 ```
 
-And, let's report an error.
+And, let's close the error log:
 
 {% terminal %}
-$ rake alarm:clear service=email
+$ rake alarm:close service=email
 {% endterminal %}
 
 Congrats, that's section 1!
