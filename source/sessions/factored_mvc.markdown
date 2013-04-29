@@ -219,11 +219,22 @@ We're going to be refactoring `StatsController#get_stats_tags`.
 * How many SQL queries does it execute?
 * Where does it get called from? (HINT: `git grep get_stats_tags`)
 
-This logic belongs in the model layer. We're going to create a ruby class that
-doesn't inherit from `ActiveRecord::Base`.
+This logic belongs in the model layer. We're going to create a ruby
+class that doesn't inherit from `ActiveRecord::Base`.
 
-Create a directory inside of `app/models/` named `stats`. Then, create a file
-`app/models/stats/tag_cloud.rb`
+Create a new directory called `stats` inside of `app/models/`.
+
+{% terminal %}
+mkdir app/models/stats
+{% endterminal %}
+
+Then, create a file `app/models/stats/tag_cloud.rb`
+
+{% terminal %}
+touch app/models/stats/tag_cloud.rb
+{% endterminal %}
+
+Put the following code in the `tag_cloud.rb` file:
 
 ```ruby
 class TagCloud
