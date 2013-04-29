@@ -47,7 +47,9 @@ $ rake db:create db:migrate
 
 ![empty-alarms](/images/rails-is-just-ruby-1.png)
 
-#### If Twilio takes too long (5 minutes max), use these values below:
+Edit the config/initializers/sms.rb and fill out the Beeper.config
+
+#### TIP: If Twilio takes too long (5 minutes max), use these values below:
 
 ```ruby
 Beeper.config do |config|
@@ -59,23 +61,7 @@ Beeper.config do |config|
 end
 ```
 
-{% terminal %}
-$ cp config/initializers/sms.rb.sample config/initializers/sms.rb
-{% endterminal %}
-
-Now, you'll want to edit the sms.rb and fill out:
-
-```ruby
-Beeper.config do |config|
-  config.twilio_phone_number = '' # The phone number twilio gave you
-  config.twilio_sid = ''
-  config.twilio_auth_token = ''
-  config.your_phone_number = ''
-  config.your_email_address = ''
-end
-```
-
-Let's test out and make sure you can send texts
+#### Let's test out and make sure you can send texts
 
 {% terminal %}
 $ bundle exec rake beeper:test:sms
@@ -84,7 +70,7 @@ $ bundle exec rake beeper:test:sms
 You should receive a text instantly. If you don't, you'll need to check the
 config values.
 
-Let's try this out!
+Let's start the Rails server and get some errors reported to us!
 
 {% terminal %}
 $ rails s
