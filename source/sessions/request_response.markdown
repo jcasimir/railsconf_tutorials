@@ -6,7 +6,7 @@ sidebar: true
 
 ## Presentation
 
-- TODO: add link to slides
+- [Slides](http://courseware.codeschool.com/how_a_request_becomes_a_response.pdf "Slides")
 
 ## Workshop
 
@@ -17,5 +17,10 @@ You likely won't finish an entire course during our session. We recommend workin
 Aimee and Chris will be available to answer questions! 
 
 - [Rails for Zombies](http://railsforzombies.org/levels/1 "Rails for Zombies")
-- [Rails for Zombies 2](http://railsforzombiestwo.codeschool.com/ "Rails for Zombies 2")
-- TODO: add promo url for RFZ2
+- [Rails for Zombies 2](http://go.codeschool.com/pdxzombies "Rails for Zombies 2")
+
+## Chat
+
+We have a Campfire room set up for you to ask and answer each other's questions during the session.
+
+- [Chat](http://railsconftutorials.com/chat)
