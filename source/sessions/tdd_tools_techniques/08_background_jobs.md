@@ -38,6 +38,7 @@ stack.
 Let's install it first in the `Gemfile`:
 
 ```ruby
+# Gemfile
 source 'https://rubygems.org'
 
 gem 'delayed_job_active_record'
@@ -214,6 +215,7 @@ quickly here.
 Something like:
 
 ```ruby
+# app/jobs/hello_email_job.rb
 class HelloEmailJob < Struct.new(:user)
   def perform
     Mailer.hello(user)
@@ -241,6 +243,7 @@ end
 
 Testing the job itself would look like this:
 ```ruby
+# spec/jobs/hello_email_job_spec.rb
 require 'spec_helper'
 
 describe HelloEmailJob, '#perform' do
