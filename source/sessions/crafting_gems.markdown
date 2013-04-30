@@ -26,7 +26,7 @@ article.tag_names #=> ['portland', 'railsconf', '2013']
 
 ## Step One: give your gem a name
 
-Naming things is one of the hardest parts of writing software. This is just a tutorial though, so let's keep it clean and simple. Pick an animal name for some inspiration, add on "tag_" as a prefix, then check on rubygems.org to see if it's taken. Personally, I'm going with tag_echidna, so you'll need to pick something else (but I'm going to use it throughout the example code).
+Naming things is one of the hardest parts of writing software. This is just a tutorial though, so let's keep it clean and simple. Pick an animal name for some inspiration, add on "tag_" as a prefix, then check on rubygems.org to see if it's taken. Personally, I'm going with `tag_echidna`, so you'll need to pick something else (but I'm going to use it throughout the example code).
 
 ## Step Two: First files and folders
 
@@ -35,14 +35,17 @@ Naming things is one of the hardest parts of writing software. This is just a tu
 3. Create a ruby file in your lib directory using the name of your gem. Leave the contents blank for the moment.
 4. Create a gemspec file for your gem - again using your gem name, with gemspec as the file extension. Don't worry about the contents for the moment.
 
-You should have a directory structure like this:
+You should have a directory/file structure like this:
 
-* tag_echidna
-  * lib
-    * tag_echidna.rb
-  * tag_echidna.gemspec
+* `tag_echidna/lib/tag_echidna.rb`
+* `tag_echidna/tag_echidna.gemspec`
 
-Don't forget to set this project up as a git repository by running `git init`. We don't want to lose all of our hard work!
+We'll be working within our project directory, so make sure you jump into that, and then set the project up as a git repository - we don't want to lose all of our hard work!
+
+{% terminal %}
+$ cd tag_echidna
+$ git init
+{% endterminal %}
 
 Next, let's fill out our gemspec file. Here's a template, but put your name, email address and gem name in.
 
@@ -82,13 +85,13 @@ $ gem build tag_echidna.gemspec
 Then, go and register an account on rubygems.org if you haven't done that already. Once you have an account, you can upload your gem:
 
 {% terminal %}
-gem push tag_echidna-0.0.1.gem
+$ gem push tag_echidna-0.0.1.gem
 {% endterminal %}
 
 Congratulations, you just published a gem! You can go ahead and install it (it may take rubygems.org a minute to catch up, though):
 
 {% terminal %}
-gem install tag_echidna
+$ gem install tag_echidna
 {% endterminal %}
 
 ## Step Four: Getting Tests In Place
@@ -212,20 +215,20 @@ s.add_development_dependency 'sqlite3',      '~> 1.3.7'
 With all of that set up, we can bundle:
 
 {% terminal %}
-bundle install
+$ bundle install
 {% endterminal %}
 
 Commit our changes:
 
 {% terminal %}
-git add .gitignore Gemfile spec tag_echidna.gemspec
-git commit -m "Setting up a test suite"
+$ git add .gitignore Gemfile spec tag_echidna.gemspec
+$ git commit -m "Setting up a test suite"
 {% endterminal %}
 
 And run our tests:
 
 {% terminal %}
-rspec spec/acceptance
+$ rspec spec/acceptance
 {% endterminal %}
 
 And it will explode dramatically. But that's fine - if they passed, that'd be a bit worrying, because our gem still doesn't do anything.
@@ -291,8 +294,8 @@ require 'tag_echidna/engine'
 If you run our tests again, you'll see that the situation has improved - the tests actually run now, but they're red. Not quite there, but before we continue, let's commit our changes:
 
 {% terminal %}
-git add lib
-git commit -m "Engine and ActiveRecord extensions"
+$ git add lib
+$ git commit -m "Engine and ActiveRecord extensions"
 {% endterminal %}
 
 Our tests are complaining because we don't have tag models - so let's add those models in, plus a migration so they have tables as well.
@@ -596,7 +599,7 @@ $ gem push tag_echidna-0.1.0.gem
 Congratulations - you have a working tag gem with a green test suite. Perhaps you should create a new Rails app and put this in to give it a spin? Once the gem's in your app's Gemfile, you need to run a rake task to copy migrations over:
 
 {% terminal %}
-rake tag_echidna:install:migrations
+$ rake tag_echidna:install:migrations
 {% endterminal %}
 
 ## Extra Credit
