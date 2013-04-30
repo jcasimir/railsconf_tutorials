@@ -24,6 +24,13 @@ article.tag_names << '2013'
 article.tag_names #=> ['portland', 'railsconf', '2013']
 ```
 
+### Prerequisites
+
+* [Ruby 1.9.3](https://rvm.io/)
+* [Bundler](http://gembundler.com/)
+
+If you have Ruby 1.8, that will likely be fine.
+
 ## Step One: give your gem a name
 
 Naming things is one of the hardest parts of writing software. This is just a tutorial though, so let's keep it clean and simple. Pick an animal name for some inspiration, add on "tag_" as a prefix, then check on rubygems.org to see if it's taken. Personally, I'm going with `tag_echidna`, so you'll need to pick something else (but I'm going to use it throughout the example code).
@@ -31,7 +38,7 @@ Naming things is one of the hardest parts of writing software. This is just a tu
 ## Step Two: First files and folders
 
 1. Create a directory for your gem - call it whatever your gem's called (tag_echidna).
-2. Create a directory within your new project directory with the name 'lib'.
+2. Create a directory within your new project directory with the name 'lib' - this is where the code for our gem will live.
 3. Create a ruby file in your lib directory using the name of your gem. Leave the contents blank for the moment.
 4. Create a gemspec file for your gem - again using your gem name, with gemspec as the file extension. Don't worry about the contents for the moment.
 
@@ -82,7 +89,7 @@ We already have a valid gem though - and to prove it, let's get it published. Fi
 $ gem build tag_echidna.gemspec
 {% endterminal %}
 
-Then, go and register an account on rubygems.org if you haven't done that already. Once you have an account, you can upload your gem:
+Then, go and register an account on [rubygems.org](http://rubygems.org) if you haven't done that already. Once you have an account, you can upload your gem:
 
 {% terminal %}
 $ gem push tag_echidna-0.0.1.gem
@@ -199,9 +206,9 @@ And then, we need to add a few dependencies to our gemspec. First up, ActiveReco
 
 We also have three development dependencies - gems we need just so we can build our gem, but aren't required for it to work in Rails apps:
 
-* Combustion, a library for testing Rails engines (which is what our gem will be),
-* RSpec-Rails, the testing framework with some tweaks for Rails, and
-* SQlite3, so our tests can persist data while they're running.
+* [Combustion](https://github.com/pat/combustion), a library for testing Rails engines (which is what our gem will be),
+* [RSpec-Rails](https://www.relishapp.com/rspec/rspec-rails/docs), the testing framework with some tweaks for Rails, and
+* [SQlite3](https://github.com/luislavena/sqlite3-ruby), so our tests can persist data while they're running.
 
 So, in our gemspec, add these lines at the bottom (but within the specification block):
 
@@ -239,15 +246,17 @@ Our tests are currently failing, because there's no `has_many_tags` method avail
 
 ### `lib/tag_echidna/active_record.rb`
 
-Don't forget: change TagEchidna references to match your gem name.
+We're namespacing this under our gem's module - and with a file path to match. Don't forget: change TagEchidna references to match your gem name.
 
 ```ruby
 module TagEchidna::ActiveRecord
   def self.included(base)
+    # include our class methods
     base.extend TagEchidna::ActiveRecord::ClassMethods
   end
 
   module ClassMethods
+    # Set up the underlying tag associations in the model
     def has_many_tags
       has_many :taggings, :class_name => 'TagEchidna::Tagging',
         :as => :taggable, :dependent => :destroy
@@ -268,9 +277,12 @@ Again: change TagEchidna references to match your gem name.
 require 'rails/engine'
 
 class TagEchidna::Engine < Rails::Engine
+  # set our engine name
   engine_name :tag_echidna
 
   ActiveSupport.on_load :active_record do
+    # this is run when Rails loads ActiveRecord, and is
+    # within the context of ActiveRecord::Base.
     include TagEchidna::ActiveRecord
   end
 end
@@ -283,10 +295,12 @@ And now we need something to load these two files - we already have the file, it
 Tweak this to match your gem name and path:
 
 ```ruby
+# Declare our top level module
 module TagEchidna
   #
 end
 
+# Require the rest of the gem's files
 require 'tag_echidna/active_record'
 require 'tag_echidna/engine'
 ```
@@ -302,7 +316,9 @@ Our tests are complaining because we don't have tag models - so let's add those 
 
 ### `app/models/tag_echidna/tag.rb`
 
-We need a model for our tag objects:
+We need a model for our tag objects - and so, we can put that under the `app/models` directory for our gem, and they'll be automatically detected due to our Rails engine class.
+
+We're namespacing our models so they don't conflict with duplicate models in other gems.
 
 ```ruby
 class TagEchidna::Tag < ActiveRecord::Base
@@ -458,7 +474,9 @@ end
 
 You can run the tests and confirm that yes, it's not all green anymore. Let's step through getting the tag names implemented, bit by bit.
 
-First, we need to ensure that each model has a method called `tag_names`. This is easy enough, but we also know whatever gets returned from that method has further methods called on it. We really don't want to add any more to the model than necessary, and this is quite a focused piece of the gem, so it can be an object instead, called TagNames.
+First, we need to ensure that each model has a method called `tag_names`. This is easy enough, but we also know whatever gets returned from that method has further methods called on it.
+
+We really don't want to add any more to the model than necessary - that's a class that belongs to the Rails app, not our gem - and this is quite a focused piece of the gem, so it can be an object instead. Let's call it TagNames.
 
 ### `lib/tag_echidna/active_record.rb`
 
@@ -471,6 +489,8 @@ end
 ```
 
 ### `lib/tag_echidna/tag_names.rb`
+
+Namespaced within our gem structure as well - a simple Ruby class.
 
 ```ruby
 class TagEchidna::TagNames
@@ -498,6 +518,7 @@ That fixes one test... there's still seven that are unhappy though. If we want t
 
 ```ruby
 def <<(name)
+  # find an existing tag, or create a new one
   tag = TagEchidna::Tag.where(:name => name).first ||
         TagEchidna::Tag.create(:name => name)
 
@@ -512,6 +533,7 @@ def tag_names=(names)
   if names.is_a?(TagEchidna::TagNames)
     @tag_names = names
   else
+    # convert the array of strings to a TagNames object
     @tag_names = TagEchidna::TagNames.new_with_names self, names
   end
 end
@@ -520,6 +542,8 @@ end
 That then relies on a new class method and a new instance method in our `TagNames` class:
 
 ```ruby
+# Create a new TagNames object, but clear out existing tags
+# and use the provided set instead.
 def self.new_with_names(taggable, names)
   tag_names = new(taggable)
   tag_names.clear
@@ -542,7 +566,7 @@ def each(&block)
 end
 ```
 
-It'd be nice if we added the other common enumeration methods too - which just takes a single line:
+It'd be nice if we added the other common enumeration methods too (`collect`, `select`, `inject`, etc) - which just takes a single line:
 
 ```ruby
 include Enumerable
