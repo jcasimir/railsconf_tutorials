@@ -9,6 +9,15 @@ collection of patterns from the most awesomest language in the world (Ruby)?
 
 [Slides](https://speakerdeck.com/jwo/rails-is-just-ruby)
 
+## Update
+
+The repo was fixed for the problem where you would need to restart the
+server. The
+[fix](https://github.com/jwo/railsconftutorial-beeper/commit/777988657abd3472ebec9250ff731836a7ef84c8)
+removes Rails auto-loading for the lib directory. It's probably easiest for you
+to delete your directory and start over, though if you pull in or replicate the
+commit you'll be all set.
+
 ## Workshop
 
 Yay! Let's write some code. We'll start from a small Rails 3.2.13 application
