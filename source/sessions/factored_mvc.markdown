@@ -219,6 +219,8 @@ We're going to be refactoring `StatsController#get_stats_tags`.
 * How many SQL queries does it execute?
 * Where does it get called from? (HINT: `git grep get_stats_tags`)
 
+### Preparing a new Model
+
 This logic belongs in the model layer. We're going to create a ruby
 class that doesn't inherit from `ActiveRecord::Base`.
 
@@ -245,6 +247,8 @@ end
 
 Now _copy_ (do NOT _cut_) the contents of the `get_stats_tags` method from the
 controller into the compute method of the new `TagCloud` class.
+
+### Sanity Checking the Extraction
 
 Go back to the controller, and add this line of code to the top of the
 `get_stats_tags` method:
@@ -359,6 +363,11 @@ max, @tags_min = 0, 0
 Create an `attr_reader` in the `TagCloud` model for `:tags_min`, and then go back to the controller and add a new assignment below the section that deals with `@tags_min`:
 
 ```ruby
+max, @tags_min = 0, 0
+@tags_for_cloud.each { |t|
+  max = [t.count.to_i, max].max
+  @tags_min = [t.count.to_i, @tags_min].min
+}
 @tags_min = cloud.tags_min
 ```
 
@@ -368,14 +377,14 @@ Delete the code that we've just replaced and re-run the `lockdown` test to make 
 
 Ouch! That failed. We're missing a local variable named `max`. Let's put back the code we just deleted. The `@tags_divisor` assignment needs `max`.
 
-Let's go ahead and expose `:tags_divisor` in the `TagCloud` object as well, and assign it in the controller:
+Go ahead and expose `:tags_divisor` in the `TagCloud` object as well, and assign it in the controller:
 
 ```ruby
 @tags_divisor = ((max - @tags_min) / levels) + 1
 @tags_divisor = cloud.tags_divisor
 ```
 
-Run the lockdown test. It should be passing.
+Run the `lockdown` test. It should be passing.
 
 Now we can delete the old code for `@tags_min` and `@tags_divisor`. Do that, and then run the `lockdown` test again.
 
@@ -399,7 +408,15 @@ def get_stats_tags
 end
 ```
 
-The next instance variable that gets assigned is `@tags_for_cloud_90_days`. Expose this in the `TagCloud` using an attr_reader, and then put a new declaration below it using the exposed value:
+The next instance variable that gets assigned is `@tags_for_cloud_90_days`.
+
+```ruby
+@tags_for_cloud_90days = Tag.find_by_sql(
+  [query, current_user.id, @cut_off_3months, @cut_off_3months]
+).sort_by { |tag| tag.name.downcase }
+```
+
+Expose this in the `TagCloud` using an attr_reader, and then put a new declaration below it using the exposed value:
 
 ```ruby
 @tags_for_cloud_90days = Tag.find_by_sql(
@@ -426,7 +443,7 @@ It looks like it comes from a helper method in the controller called `init`. Let
 cloud = TagCloud.new(current_user, @cut_off_3months)
 ```
 
-We need to make sure that we have support for this new variable in the `TagCloud` as well:
+We need to make sure that we save this new variable in the `TagCloud`:
 
 ```ruby
 class TagCloud
@@ -500,8 +517,10 @@ def get_stats_tags
 end
 ```
 
-We can delete the comments, as well as the local variable named `levels`.
-It isn't used anymore. The controller method now looks like this:
+We can delete the comments, because they've all been moved into the `TagCloud`
+class. We can also ditch the `level` variable, which is no longer used here.
+
+The controller method now looks like this:
 
 ```ruby
 def get_stats_tags
