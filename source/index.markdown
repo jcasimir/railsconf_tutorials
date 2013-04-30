@@ -34,4 +34,4 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 ## Wednesday
 
 * 11:30 - 1:00 -- [Properly Factored MVC]({% page_url sessions/factored_mvc %}) with Jeff Casimir and Katrina Owen from Jumpstart Lab
-* 2:00 - 3:30 -- [Crafting Gems]({% page_url sessions/crafting_gems %}) with Pat Allan from Trampoline
+* 2:00 - 3:30 -- [Crafting Gems]({% page_url sessions/crafting_gems %}) with Pat Allan from Flying Sphinx
