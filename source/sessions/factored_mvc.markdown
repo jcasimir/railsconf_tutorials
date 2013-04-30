@@ -219,6 +219,8 @@ We're going to be refactoring `StatsController#get_stats_tags`.
 * How many SQL queries does it execute?
 * Where does it get called from? (HINT: `git grep get_stats_tags`)
 
+### Preparing a new Model
+
 This logic belongs in the model layer. We're going to create a ruby
 class that doesn't inherit from `ActiveRecord::Base`.
 
@@ -245,6 +247,8 @@ end
 
 Now _copy_ (do NOT _cut_) the contents of the `get_stats_tags` method from the
 controller into the compute method of the new `TagCloud` class.
+
+### Sanity Checking the Extraction
 
 Go back to the controller, and add this line of code to the top of the
 `get_stats_tags` method:
@@ -307,6 +311,8 @@ Otherwise just create a new branch based on the current state of your code:
 $ git checkout -b iteration3
 {% endterminal %}
 
+### Replacing an Instance Variable
+
 First, let's assign the `TagCloud` object that we're creating in the `StatsController#get_stats_tags` method:
 
 ```ruby
@@ -346,6 +352,8 @@ Now you can delete the original `@tags_for_cloud` assignment, along with the big
 
 Run the `lockdown` test again to make sure you didn't delete too much.
 
+### Replacing Another Instance Variable
+
 The next assignment is `@tags_min`, which is first assigned and then changed:
 
 ```ruby
@@ -359,6 +367,11 @@ max, @tags_min = 0, 0
 Create an `attr_reader` in the `TagCloud` model for `:tags_min`, and then go back to the controller and add a new assignment below the section that deals with `@tags_min`:
 
 ```ruby
+max, @tags_min = 0, 0
+@tags_for_cloud.each { |t|
+  max = [t.count.to_i, max].max
+  @tags_min = [t.count.to_i, @tags_min].min
+}
 @tags_min = cloud.tags_min
 ```
 
@@ -368,16 +381,18 @@ Delete the code that we've just replaced and re-run the `lockdown` test to make 
 
 Ouch! That failed. We're missing a local variable named `max`. Let's put back the code we just deleted. The `@tags_divisor` assignment needs `max`.
 
-Let's go ahead and expose `:tags_divisor` in the `TagCloud` object as well, and assign it in the controller:
+Go ahead and expose `:tags_divisor` in the `TagCloud` object as well, and assign it in the controller:
 
 ```ruby
 @tags_divisor = ((max - @tags_min) / levels) + 1
 @tags_divisor = cloud.tags_divisor
 ```
 
-Run the lockdown test. It should be passing.
+Run the `lockdown` test. It should be passing.
 
 Now we can delete the old code for `@tags_min` and `@tags_divisor`. Do that, and then run the `lockdown` test again.
+
+### Progress So Far
 
 The `get_stats_tags` method should now look something like this:
 
@@ -399,7 +414,17 @@ def get_stats_tags
 end
 ```
 
-The next instance variable that gets assigned is `@tags_for_cloud_90_days`. Expose this in the `TagCloud` using an attr_reader, and then put a new declaration below it using the exposed value:
+### Yet Another Instance Variable
+
+The next instance variable that gets assigned is `@tags_for_cloud_90_days`.
+
+```ruby
+@tags_for_cloud_90days = Tag.find_by_sql(
+  [query, current_user.id, @cut_off_3months, @cut_off_3months]
+).sort_by { |tag| tag.name.downcase }
+```
+
+Expose this in the `TagCloud` using an attr_reader, and then put a new declaration below it using the exposed value:
 
 ```ruby
 @tags_for_cloud_90days = Tag.find_by_sql(
@@ -409,6 +434,8 @@ The next instance variable that gets assigned is `@tags_for_cloud_90_days`. Expo
 ```
 
 The tests are failing. What happened?
+
+### A `nil` what, now?
 
 Let's look at the diff:
 
@@ -426,7 +453,7 @@ It looks like it comes from a helper method in the controller called `init`. Let
 cloud = TagCloud.new(current_user, @cut_off_3months)
 ```
 
-We need to make sure that we have support for this new variable in the `TagCloud` as well:
+We need to make sure that we save this new variable in the `TagCloud`:
 
 ```ruby
 class TagCloud
@@ -450,13 +477,17 @@ Now we can delete that second big sql `query` string, along with the old `@tags_
 
 The test still passes.
 
+### More Instance Variables
+
 The next instance variable that is being assigned is `@tags_min_90days`.
 
 Expose the variable in the `TagCloud`, and add the new assignment below the old one in the controller.
 
 Run the `lockdown` test. It should be passing.
 
-We won't try to delete this, because it looks eerily familiar. The `@tags_divisor_90days` needs the `max_90days` local variable that is in there.
+### Déjà Vu
+
+We won't try to delete this, because it looks eerily familiar: the `@tags_divisor_90days` needs the `max_90days` local variable that gets defined in that section of the code.
 
 Expose the `@tags_divisor_90days` and add the new assignment below the old one.
 
@@ -474,9 +505,12 @@ max_90days, @tags_min_90days = 0, 0
 @tags_divisor_90days = cloud.tags_divisor_90days
 ```
 
-The `lockdown` test should be passing.
+The `lockdown` test should be passing, and we can delete both of the old
+sections defining `@tags_min_90days` and `@tags_divisor_90days`.
 
-Go ahead and delete the old code and rerun the `lockdown` test.
+Run the `lockdown` test.
+
+### Tidying Up `get_stats_tags`
 
 The controller method should look like this:
 
@@ -500,8 +534,12 @@ def get_stats_tags
 end
 ```
 
-We can delete the comments, as well as the local variable named `levels`.
-It isn't used anymore. The controller method now looks like this:
+We can delete the comments, because they've all been moved into the `TagCloud`
+class.
+
+We can also ditch the `level` variable, which is no longer used here.
+
+The controller method now looks like this:
 
 ```ruby
 def get_stats_tags
@@ -518,9 +556,7 @@ def get_stats_tags
 end
 ```
 
-The `lockdown` test should be passing.
-
-Commit your changes.
+If the `lockdown` test is passing, commit your changes.
 
 ## I4: Cleaning up the TagCloud
 
@@ -536,11 +572,11 @@ Otherwise just create a new branch based on the current state of your code:
 $ git checkout -b iteration4
 {% endterminal %}
 
-### Current User is not Current
+### Current User is No Longer Current
 
 In `app/models/tag_cloud.rb` we're referring to a `current_user`, but users in
-the model aren't really `current`, that's a controller/view level bit of
-logic.
+the model aren't really `current`, that's a concern for the web-part of the
+application (controllers and views).
 
 Rename `current_user` to `user`, and run the `lockdown` test to make sure you
 did it correctly.
@@ -565,37 +601,54 @@ get rid of them.
 
 ### Redundant Variable Names
 
-The variable names `tags_for_cloud` and `tags_for_cloud_90days` contain some
-redundancy in them now, because these are being called on an object that *is*
-a tag cloud. Let's get rid of the `for_cloud` bit and just call them `tags`
-and `tags_90days`.
+`TagCloud#tags_for_cloud` is a very redundant method name. It would read much
+better if we just call it `tags`, because we already know we're in a cloud.
+
+Look at how nice this becomes:
+
+```ruby
+cloud.tags
+```
 
 Once you've made the change in the `TagCloud` class, you'll need to update the
-controller as well.
+controller.
 
-Be sure to only update the calls to `cloud`, not the instance variables that
-you're assigning, because the views are still using the old names.
+Be sure to only update the message that gets sent to the `cloud` object, not the name of the instance variable that you're assigning, because the view is still using the old variable name.
 
 ```ruby
 @tags_for_cloud = cloud.tags
-@tags_for_cloud_90days = cloud.tags_90days
 ```
 
-I think the `tags_min` and `tags_divisor` variables also have some redundancy
-in them. It's all about tags. Let's call them `min`, `divisor`, `min_90days`,
-and `divisor_90days`.
+### More Redundancy
 
-Remember to update the controller as well.
+When a variable name is composed of several parts, then each part should
+make a meaningful distinction.
 
-Run the `lockdown` test, and it should still be passing.
+Think a bit about the following variable names:
+
+* `tags_for_cloud_90days`
+* `tags_min`
+* `tags_divisor`
+* `tags_min_90days`
+* `tags_divisor_90days`
+
+For each part of the name, think about whether or not that portion of the name
+is making a meaningful distinction. Does the variable name lose any meaning if
+that bit is dropped?
+
+Update the variable names, and remember to update the controller as well.
+
+Run the `lockdown` test, which should still be passing.
 
 ## Overspecified Variable Name
 
-The `@cut_off_3months` variable name has too much information in it. It will
-work no matter what cut off we operate with. Let's rename it to be simply
-`cut_off`.
+The `@cut_off_3months` variable name has too much information in it.
 
-Run the `lockdown` test, and commit your changes.
+The fact that it is a `cut_off` is important. The fact that it is `3months` is
+fairly arbitrary. If we happened to set the `cut_off` to 12 months or 30 days
+the code would still work.
+
+Rename the variable to `@cut_off`, run the `lockdown` test, and commit your changes.
 
 ## I5: Extracting the SQL queries
 
