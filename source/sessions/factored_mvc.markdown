@@ -640,7 +640,7 @@ Update the variable names, and remember to update the controller as well.
 
 Run the `lockdown` test, which should still be passing.
 
-## Overspecified Variable Name
+### Overspecified Variable Name
 
 The `@cut_off_3months` variable name has too much information in it.
 
@@ -652,7 +652,8 @@ Rename the variable to `@cut_off`, run the `lockdown` test, and commit your chan
 
 ## I5: Extracting the SQL queries
 
-If you've gotten confused and want a clean slate, go ahead and checkout a new branch based on the `cloud.i4` tag.
+If you've gotten confused and want a clean slate, go ahead and checkout a
+new branch based on the `cloud.i4` tag.
 
 {% terminal %}
 $ git checkout -b iteration5 cloud.i4
@@ -687,6 +688,8 @@ First add a `private` declaration at the bottom of the class.
 Then, below it, add an empty method called `sql_90days`.
 
 ```ruby
+private
+
 def sql_90days
 end
 ```
@@ -764,7 +767,7 @@ We can convert _similar_ into _identical_ by taking one of them and replacing
 the other with it. Let's use the more verbose one in case we're dealing with a
 join that makes it necessary.
 
-### Comparing Lines 2 & 3
+### Identifying Identical
 
 In both queries, lines 2 and 3 look like this:
 
@@ -775,7 +778,7 @@ query << " WHERE tags.id = tag_id"
 
 They are identical, so we can leave them.
 
-### More Similar Code
+### Analyzing Similar
 
 Here are the following lines of code from both queries:
 
@@ -795,9 +798,17 @@ query << " AND taggings.taggable_id=todos.id "
 
 They are very similar. Let's take it line by line.
 
-The first line extracted from `sql` is identical to the last line extracted
-from the `sql_90days` method. Move it to be last, so we end up with the
-following code:
+The first line extracted from `sql` is this:
+
+```ruby
+query << " AND taggings.taggable_id = todos.id"
+```
+
+There's a line in `sql_90days` that is identical to that. The order of
+these clauses are irrelevant, so we can move the first of the
+three lines in the excerpt of `sql` to be last.
+
+We end up with the following code:
 
 ```ruby
 # sql
@@ -832,7 +843,7 @@ Both lines of code are doing the same thing: interpolating a user id into the
 query.
 
 The first just concatenates the user id straight in to the string, and the
-second uses `ActiveRecord`'s dynamic conditions that turn this:
+second uses `ActiveRecord`'s dynamic conditions that turn things like this:
 
 ```ruby
 BikeShed.where('color = ?', some_color)
@@ -849,23 +860,24 @@ you against [SQL injection
 attacks](http://guides.rubyonrails.org/security.html#sql-injection).
 
 We aren't afraid of SQL injection happening here, because we're just using the
-`user.id` that the database made up for us, but it's still a good habit.
+`user.id` that the database made up for us, but using the dynamic conditions
+is a good habit to have, so let's standardize to that version.
 
 ### Converting to a Dynamic Condition
 
-Before we can make these two lines identical we need to tweak the
-`find_by_sql` calls in the `compute` method.
+Before we make these two lines identical it's helpful to understand how they
+are different.
 
-The two `find_by_sql` calls look like this:
-
-```ruby
-@tags_90days = Tag.find_by_sql(
-  [sql_90days, user.id, @cut_off, @cut_off]
-).sort_by { |tag| tag.name.downcase }
-```
+There are two `find_by_sql` calls in the `compute` method, and these are _similar_, but not _identical_:
 
 ```ruby
 @tags = Tag.find_by_sql(sql).sort_by { |tag| tag.name.downcase }
+
+# ... some code
+
+@tags_90days = Tag.find_by_sql(
+  [sql_90days, user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
 ```
 
 First, let's reformat the one-liner to be on 3 lines:
@@ -874,37 +886,70 @@ First, let's reformat the one-liner to be on 3 lines:
 @tags = Tag.find_by_sql(
   sql
 ).sort_by { |tag| tag.name.downcase }
+
+# ... some code
+
+@tags_90days = Tag.find_by_sql(
+  [sql_90days, user.id, @cut_off, @cut_off]
+).sort_by { |tag| tag.name.downcase }
 ```
 
-The only difference is the second line. Let's assign that line to a variable
-named `params`:
+It becomes easier to see that the only difference between the two calls
+is the middle line, or rather: the arguments that get passed to the
+`find_by_sql` method.
+
+To clarify this, let's extract the part that varies.
+
+Assign that arguments to `find_by_sql` to a variable named `params`:
 
 ```ruby
 params = sql
 @tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
-```
 
-```ruby
+# ... some code
+
 params = [sql_90days, user.id, @cut_off, @cut_off]
 @tags_90days = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
 ```
 
-Notice how the second `params` is an array? Let's make the first one an array
-as well:
+The `find_by_sql` incantation is now identical in both cases, so we can ignore
+it and focus on the parts that are different:
+
+```ruby
+params = sql
+# vs
+params = [sql_90days, user.id, @cut_off, @cut_off]
+```
+
+One is an array, and one is not. When `find_by_sql` receives an array, it
+takes the first element of the array and assumes that it is the actual query
+string, and then all the rest of the variables are what are known as `bind`
+variables because they get _bound_ into the array wherever there are question
+marks.
+
+This is important, because you need to have a variable for every question
+mark, otherwise it blows up.
+
+On the other hand, it's perfectly fine to have an array with a single element
+in it.
 
 ```ruby
 params = [sql]
-@tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
+# vs
+params = [sql_90days, user.id, @cut_off, @cut_off]
 ```
 
 If you run the `lockdown` test, it should still be passing.
 
-Next, let's go ahead and add the `user.id` to the array, even though it
-doesn't get used yet.
+It's also perfectly OK to have `bind` variables that don't actually get used.
+It's probably not a good idea to keep them around, but as a temporary step to
+keep tests green while preparing code to be changed it's a completely
+rational thing to do.
+
+So we can add the `user.id` to the argument list.
 
 ```ruby
 params = [sql, user.id]
-@tags = Tag.find_by_sql(params).sort_by { |tag| tag.name.downcase }
 ```
 
 The `lockdown` test is still passing`.
@@ -916,23 +961,59 @@ identical to the one in the `sql_90days` method:
 query << " AND todos.user_id=? "
 ```
 
-At this point the last 3 lines of the query are identical as well, but the
-`sql_90days` method has 2 extra lines in it:
+### Are the Queries Identical Yet?
+
+```ruby
+# sql
+query = "SELECT tags.id, tags.name AS name, count(*) AS count"
+query << " FROM taggings, tags, todos"
+query << " WHERE tags.id = tag_id"
+query << " AND todos.user_id=? "
+query << " AND taggings.taggable_type='Todo' "
+query << " AND taggings.taggable_id=todos.id "
+query << " GROUP BY tags.id, tags.name"
+query << " ORDER BY count DESC, name"
+query << " LIMIT 100"
+```
+
+```ruby
+query = "SELECT tags.id, tags.name AS name, count(*) AS count"
+query << " FROM taggings, tags, todos"
+query << " WHERE tags.id = tag_id"
+query << " AND todos.user_id=? "
+query << " AND taggings.taggable_type='Todo' "
+query << " AND taggings.taggable_id=todos.id "
+query << " AND (todos.created_at > ? OR "
+query << "      todos.completed_at > ?) "
+query << " GROUP BY tags.id, tags.name"
+query << " ORDER BY count DESC, name"
+query << " LIMIT 100"
+```
+
+There is only one difference between the two queries now:
+
+The `sql_90days` method has 2 lines more than the `sql` method.
 
 ```ruby
 query << " AND (todos.created_at > ? OR "
 query << "      todos.completed_at > ?) "
 ```
 
-Notice the question marks in those two lines? This is where the
-`@cut_off` gets used in the call to `find_by_sql`:
+Notice the question marks in those two lines? We have two bind variables:
+`@cut_off` and `@cut_off`.
 
 ```ruby
 params = [sql_90days, user.id, @cut_off, @cut_off]
 ```
 
-So we can pass the cut off to the method and add an if statement around
-those lines of code, making the `sql_90days` method look like this:
+### The Final Two Lines
+
+We are so close to having the two queries be identical, and the only way that
+I can think of to make this happen is to wrap the two lines with a conditional
+so that if the `@cut_off` is nil, the `sql_90days` query is exactly like the
+`sql` query.
+
+This would allow us to use the same string for both queries.
 
 ```ruby
 def sql_90days(cut_off = nil)
@@ -952,7 +1033,7 @@ def sql_90days(cut_off = nil)
 end
 ```
 
-Update the params to pass in the cutoff to the `sql_90days` method:
+Update the call to `sql_90days` to take the `@cut_off`:
 
 ```ruby
 params = [sql_90days(@cut_off), user.id, @cut_off, @cut_off]
@@ -960,10 +1041,10 @@ params = [sql_90days(@cut_off), user.id, @cut_off, @cut_off]
 
 The `lockdown` test should still be passing.
 
-### Code Reuse
+### Reusing the Code
 
-Let's update the first query to use the `sql_90days` method instead of the
-`sql` method.
+Now, finally, if we call the `sql_90days` method without a `@cut_off` we get
+the exact same result as if we had called the `sql` method.
 
 Find this line of code:
 
