@@ -218,11 +218,24 @@ We're going to be refactoring `StatsController#get_stats_tags`.
 * How many instance variables does it assign?
 * How many SQL queries does it execute?
 * Where does it get called from? (HINT: `git grep get_stats_tags`)
+* What does it actually do?
+
+### What it Actually Does
+
+The `get_stats_tags` method does all the calculations two create two separate
+tag clouds on the stats page.
+
+The first tag cloud consists of all the tags for all todos for the current
+user since the beginning of time.
+
+The second tag cloud consists of all the tags for all the todos for the
+current user in the past 90 days.
 
 ### Preparing a new Model
 
-This logic belongs in the model layer. We're going to create a ruby
-class that doesn't inherit from `ActiveRecord::Base`.
+These calculations belong in the model layer, so let's move them.
+
+We're going to create a ruby class that doesn't inherit from `ActiveRecord::Base`.
 
 Create a new directory called `stats` inside of `app/models/`.
 
@@ -1080,15 +1093,25 @@ Otherwise just create a new branch based on the current state of your code:
 $ git checkout -b iteration6
 {% endterminal %}
 
-Notice how the `TagCloud` essentially does the same thing twice, once with no
-restrictions, and then a second time with the `90_days` cut off?
+### Identifying More Duplication
+
+Notice how the `TagCloud` essentially does the same thing twice.
+
+The first time, it calculates a tag cloud for all TODO items that have ever
+existed.
+
+The second time, it calculates a tag cloud for all the TODO items in the past
+90 days.
 
 We've managed to reduce the duplication of the SQL query by using the
 `cut_off` to determine whether or not the result set should actually be
 restricted.
 
-Let's expand on that idea so that the whole tag cloud object is either
-unrestricted, or for a certain time period.
+Let's expand on that idea so that the whole tag cloud object either calculates
+tags since the beginning of time, or only for a certain time period.
+
+In other words: Let's make two separate tag cloud objects for our two separate
+tag clouds.
 
 ### Optional Cut Off
 
