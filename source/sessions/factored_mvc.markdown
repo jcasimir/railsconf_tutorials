@@ -29,7 +29,7 @@ Firefox is necessary to run some Cucumber features. A DMG is available if downlo
 
 You want to create your own fork of the code on Github and prepare it for work:
 
-* [Create a fork of our repository at this URL](https://github.com/JumpstartLab/tracks/fork) 
+* [Create a fork of our repository at this URL](https://github.com/JumpstartLab/tracks/fork)
 * Hope over to [Code Climate's Registration Page](https://codeclimate.com/github/signup) where you'll add your repository name (like `jcasimir/tracks`) and an email address
 
 We'll use the feedback from CodeClimate to assess the progress you make through refactoring.
@@ -646,7 +646,7 @@ The `@cut_off_3months` variable name has too much information in it.
 
 The fact that it is a `cut_off` is important. The fact that it is `3months` is
 fairly arbitrary. If we happened to set the `cut_off` to 12 months or 30 days
-the code would still work.
+the code would still work, giving us back the data for 12 months or 30 days.
 
 Rename the variable to `@cut_off`, run the `lockdown` test, and commit your changes.
 
@@ -664,10 +664,21 @@ Otherwise just create a new branch based on the current state of your code:
 $ git checkout -b iteration5
 {% endterminal %}
 
-Let's start dealing with that big `compute` method.
+### Breaking Down `compute`
 
-The first thing I want to do is get those big SQL strings out of there.
-They're very similar, but not identical.
+It's time to start dealing with that big `compute` method.
+
+The first thing I want to do is get those enormous SQL strings out of the main
+computation.
+
+There are two `query` strings, and they're very similar, but not identical.
+
+That's unfortunate, because _identical_ is easy to deal with: you extract one,
+and call it twice.
+
+With _similar_ we're stuck with dealing with them one at a time.
+
+### Exctracting a Method
 
 Let's start with the second one, because that is the longest one.
 
@@ -679,7 +690,8 @@ Then, below it, add an empty method called `sql_90days`.
 def sql_90days
 end
 ```
-Now _copy_ the big query string that gets used for the `@tags_90days` assignment.
+
+Now _copy_ (don't _cut_) the query string that gets used for the `@tags_90days` assignment.
 
 ```ruby
 def sql_90days
@@ -697,7 +709,7 @@ def sql_90days
 end
 ```
 
-Find the line where the local variable `query` gets used:
+Find the line where this local variable `query` gets used:
 
 ```ruby
 @tags_90days = Tag.find_by_sql(
@@ -705,15 +717,14 @@ Find the line where the local variable `query` gets used:
 ).sort_by { |tag| tag.name.downcase }
 ```
 
-Replace `query` with `sql_90days`, and then run the `lockdown` test.
+Replace the reference to the local method `query` with a call to the private method `sql_90days`.
 
-It should be passing.
+Run the `lockdown` test. It should be passing.
 
-Delete the old `query` definition, and rerun the `lockdown` test. It should
-still be passing.
+Delete the old code where the `query` string is being built, then rerun the
+`lockdown` test. It should still be passing.
 
-Commit your changes so you can roll back to this point easily if things go
-south in the next step.
+Commit your changes.
 
 ### Do It Again
 
@@ -721,8 +732,8 @@ Let's do the same thing for the first SQL query string.
 
 Create a method called `sql`, and copy the query string into it.
 
-Verify that the test is passing, delete the old query, and check that the test
-is still passing.
+Verify that the test is passing, delete the old query assignment, and check
+that the test is still passing.
 
 Commit your changes.
 
@@ -734,22 +745,46 @@ compare to each other.
 Take a look at the first lines:
 
 ```ruby
-# sql_90days
-"SELECT tags.id, tags.name AS name, count(*) AS count"
-```
-
-```ruby
 # sql
 "SELECT tags.id, name, count(*) AS count"
 ```
 
-These are equivalent.
+```ruby
+# sql_90days
+"SELECT tags.id, tags.name AS name, count(*) AS count"
+```
 
-Copy the first line of `sql_90days` into `sql`, replacing the first line there.
+The only difference is that one says `tags.name AS name` whereas the other
+just specifies `name`, which implicitly means _the name column of the tags
+table, and oh, by the way, make the result be called **name**_.
 
-Lines 2 and 3 of both queries are identical.
+In other words: These are completely equivalent.
 
-Lines 4, 5, and 6 are not. Let's look at them:
+We can convert _similar_ into _identical_ by taking one of them and replacing
+the other with it. Let's use the more verbose one in case we're dealing with a
+join that makes it necessary.
+
+### Comparing Lines 2 & 3
+
+In both queries, lines 2 and 3 look like this:
+
+```ruby
+query << " FROM taggings, tags, todos"
+query << " WHERE tags.id = tag_id"
+```
+
+They are identical, so we can leave them.
+
+### More Similar Code
+
+Here are the following lines of code from both queries:
+
+```ruby
+# sql
+query << " AND taggings.taggable_id = todos.id"
+query << " AND todos.user_id="+user.id.to_s+" "
+query << " AND taggings.taggable_type='Todo' "
+```
 
 ```ruby
 # sql_90days
@@ -758,14 +793,11 @@ query << " AND taggings.taggable_type='Todo' "
 query << " AND taggings.taggable_id=todos.id "
 ```
 
-```ruby
-# sql
-query << " AND taggings.taggable_id = todos.id"
-query << " AND todos.user_id="+user.id.to_s+" "
-query << " AND taggings.taggable_type='Todo' "
-```
+They are very similar. Let's take it line by line.
 
-We can reorder those lines in `sql`, putting line 4 after line 6:
+The first line extracted from `sql` is identical to the last line extracted
+from the `sql_90days` method. Move it to be last, so we end up with the
+following code:
 
 ```ruby
 # sql
@@ -774,25 +806,55 @@ query << " AND taggings.taggable_type='Todo' "
 query << " AND taggings.taggable_id = todos.id"
 ```
 
-Now lines 5 and 6 are identical in both queries, and we're stuck with line 4:
+```ruby
+# sql_90days
+query << " AND todos.user_id=? "
+query << " AND taggings.taggable_type='Todo' "
+query << " AND taggings.taggable_id=todos.id "
+```
+
+The last two lines are now identical. Let's get rid of them and focus on the
+remaining line:
+
+```ruby
+# sql
+query << " AND todos.user_id="+user.id.to_s+" "
+```
 
 ```ruby
 # sql_90days
 query << " AND todos.user_id=? "
 ```
 
-```ruby
-# sql
-query << " AND todos.user_id="+user.id.to_s+" "
-`
+This is a pun, and it's not a very good one.
 
-These are essentially the same thing, but in one we're interpolating the
-`user.id` id directly into the string, and in the other we're passing the
-`user.id` to the `find_by_sql` method as a parameter.
+Both lines of code are doing the same thing: interpolating a user id into the
+query.
+
+The first just concatenates the user id straight in to the string, and the
+second uses `ActiveRecord`'s dynamic conditions that turn this:
+
+```ruby
+BikeShed.where('color = ?', some_color)
+```
+
+into this:
+
+```sql
+SELECT bike_sheds.* FROM bike_sheds WHERE color = 'PapayaWhip'
+```
+
+It replaces the `?` with the value you send in, and in the process protects
+you against [SQL injection
+attacks](http://guides.rubyonrails.org/security.html#sql-injection).
+
+We aren't afraid of SQL injection happening here, because we're just using the
+`user.id` that the database made up for us, but it's still a good habit.
+
+### Converting to a Dynamic Condition
 
 Before we can make these two lines identical we need to tweak the
 `find_by_sql` calls in the `compute` method.
-
 
 The two `find_by_sql` calls look like this:
 
