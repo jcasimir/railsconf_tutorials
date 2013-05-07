@@ -6,7 +6,7 @@ sidebar: true
 
 ## Presentation
 
-- [Slides](http://courseware.codeschool.com/how_a_request_becomes_a_response.pdf "Slides")
+- [Slides](https://speakerdeck.com/aimeesimone/how-a-request-becomes-a-response "Slides")
 
 ## Workshop
 
