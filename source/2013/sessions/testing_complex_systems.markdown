@@ -34,6 +34,11 @@ instructions at <https://github.com/noelrappin/rails_conf_travel>. The session
 won't use much of the Rails framework, but Rails is a useful backdrop for the
 testing topics we'll be covering.
 
+## Slides
+
+A markdown translation of the slides for this session can be found
+[here](testing_complex_system_slides.html).
+
 ## Questions, Comments
 
 If you have questions about this tutorial, or anything else for that matter, you
@@ -47,4 +52,3 @@ self promotion alert -- you can also buy
 [Master Space and Time With JavaScript](http://www.noelrappin.com/mstwjs), which
 among other things covers a lot of testing topics in JavaScript. Order during
 RailsConf with the coupon code RAILSCONF25, and get 25% off.
-
