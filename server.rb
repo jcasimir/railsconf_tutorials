@@ -7,6 +7,11 @@ get('/chat') do
   redirect 'https://jumpstartlab.campfirenow.com/9587e'
 end
 
+get('/') do
+  redirect '/2013/'
+end
+
+
 get(/.+/) do
   send_sinatra_file(request.path) {404}
 end
