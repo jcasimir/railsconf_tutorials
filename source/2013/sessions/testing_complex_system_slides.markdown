@@ -200,6 +200,7 @@ describe Purchase do
     end
   end
 end
+```
 
 ## Yay Fixtures
 * Fast
@@ -266,6 +267,7 @@ describe Purchase do
     end
   end
 end
+```
 
 ## Stubs?
 * A stub replaces all or part of an object
