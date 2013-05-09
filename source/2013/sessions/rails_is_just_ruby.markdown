@@ -7,7 +7,9 @@ sidebar: true
 Rails: the result of magical incantations, voodoo, and wizardry? Or: a
 collection of patterns from the most awesomest language in the world (Ruby)?
 
-[Slides](https://speakerdeck.com/jwo/rails-is-just-ruby)
+<div style="width:800px; margin-bottom: 20px;">
+<script async class="speakerdeck-embed" data-id="c45531409280013062881e5646d94223" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+</div>
 
 ## Update
 

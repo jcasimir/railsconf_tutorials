@@ -6,7 +6,9 @@ sidebar: true
 
 ## Presentation
 
-- [Slides](https://speakerdeck.com/aimeesimone/how-a-request-becomes-a-response "Slides")
+<div style="width:800px; margin-bottom: 20px;">
+<script async class="speakerdeck-embed" data-id="cff7c020994d0130abb06e61b960ad70" data-ratio="1.2994923857868" src="//speakerdeck.com/assets/embed.js"></script>
+</div>
 
 ## Workshop
 

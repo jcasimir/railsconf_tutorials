@@ -4,8 +4,6 @@ title: Crafting Gems
 sidebar: true
 ---
 
-# Tutorial: Building a Gem
-
 Now that you've heard about building a gem, let's actually build one. These tutorial instructions will step through building a gem that provides the common elements of tags for a Rails app - a pretty common feature.
 
 What we want is to add this line to any model in a Rails app, and then be able to add and remove tags:
