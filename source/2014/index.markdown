@@ -49,7 +49,7 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 * Description: http://railsconf.com/workshops#prop_108
 * [System Setup Instructions](sessions/elixir_express.md)
 * [Online Material](https://github.com/chrismccord/elixir_express)
-* Helpers: Joshua Wehner, Attila Domokos
+* Helpers: Joshua Wehner, Attila Domokos, Nickolas Means
 
 ## Thursday
 
