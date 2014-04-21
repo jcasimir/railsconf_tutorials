@@ -8,7 +8,7 @@ get('/chat') do
 end
 
 get('/') do
-  redirect '/2013/'
+  redirect '/2014/'
 end
 
 
