@@ -28,11 +28,13 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 * Presented by Tute Costa
 * Description: http://railsconf.com/workshops#prop_117
+* Helpers: Geoff Schorkpof, Rolen Le
 
 ### 1:40 - 4:00 -- Ruby Coding Dojo
 
 * Presented by Carlos Souza & David Rogers
 * Description: http://railsconf.com/workshops#prop_114
+* Helpers: Eric Stiens, Bryana Knight, Tom Kiefhaber
 
 ## Wednesday
 
@@ -45,6 +47,7 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 * Presented by Chris McCord
 * Description: http://railsconf.com/workshops#prop_108
+* Helpers: Joshua Wehner, Attila Domokos
 
 ## Thursday
 
@@ -52,11 +55,13 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 * Presented by John Paul Ashenfelter
 * Description: http://railsconf.com/workshops#prop_149
+* Helpers: Jennifer Payne, Hector Bustillos
 
 ### 2:10 - 4:30 -- Applications First, Frameworks Second: Better Systems through Design
 
 * Presented by Adam Hawkins
 * Description: http://railsconf.com/workshops#prop_163
+* Helpers: Bree Thomas, Ed Weng
 
 ## Friday
 
@@ -64,8 +69,10 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 * Presented by Adam Cuppy
 * Description: http://railsconf.com/workshops#prop_298
+* Helpers: John McCaffrey, Persa Zula
 
 ### 1:30 - 3:50 -- Test Drive a Browser Game With JavaScript
 
 * Presented by Zach Briggs & Todd Kaufman
 * Description: http://railsconf.com/workshops#prop_69
+* Helpers: Ed Weng, Kareem Grant
