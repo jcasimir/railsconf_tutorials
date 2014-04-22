@@ -63,6 +63,11 @@ to your computer before coming, contains the exercises we'll be working on.
 * Description: http://railsconf.com/workshops#prop_149
 * Helpers: Jennifer Payne, Hector Bustillos
 
+Please clone
+[railsconf2014-ml](https://github.com/johnpaulashenfelter/railsconf2014-ml) repository #AND RUN bundle install#.
+
+There are myriad potential edgecases with the linear algebra libraries depending on your ruby version, libraries installed through homebrew or apt-get/etc, and so on. Latest ruby (2.1.1) and homebrew on OSX Mavericks is what I built for -- we'll see what we can do if you run into problems.
+
 ### 2:10 - 4:30 -- Applications First, Frameworks Second: Better Systems through Design
 
 * Presented by Adam Hawkins
