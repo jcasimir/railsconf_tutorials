@@ -55,7 +55,12 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 ### 2:10 - 4:30 -- Applications First, Frameworks Second: Better Systems through Design
 
-* Presented by Adam Hawkins
+* Presented by [Adam Hawkins](https://twitter.com/adman65)
+* Please have Ruby 2.1 installed on your machine
+* Review [Rediscovering the Joy of Design](http://hawkins.io/2014/01/rediscovering-the-joy-of-design/)
+* Watch my screencast on [Rethinking Application Architecture](http://rethinkapplicationarchitecture.com)
+* Familiarize your self with [Chassis](https://github.com/ahawkins/chassis)
+* Learn about the [repository pattern](http://hawkins.io/2014/04/working_with_repositories/)
 * Description: http://railsconf.com/workshops#prop_163
 
 ## Friday
