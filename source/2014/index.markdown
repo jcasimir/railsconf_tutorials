@@ -26,9 +26,13 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 ### 11:00 - 12:30 -- Simplifying Code: Monster to Elegant in N<5 steps
 
-* Presented by Tute Costa
+* Presented by [Tute Costa](https://twitter.com/tutec)
 * Description: http://railsconf.com/workshops#prop_117
 * Helpers: Geoff Schorkpof, Rolen Le
+
+Please clone
+[refactoring-workshop](http://github.com/tute/refactoring-workshop) repository
+to your computer before coming, contains the exercises we'll be working on.
 
 ### 1:40 - 4:00 -- Ruby Coding Dojo
 
