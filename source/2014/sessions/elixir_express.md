@@ -1,4 +1,8 @@
-# Elixir Express - System Setup
+---
+layout: page
+title: Elixir Express - System Setup
+sidebar: true
+---
 
 There is no substitute for learning by tinkering. Getting Elixir set up on most platforms is a snap, and we should be quickly on our way.
 
