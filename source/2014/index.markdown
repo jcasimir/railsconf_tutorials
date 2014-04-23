@@ -45,7 +45,7 @@ Check out [Jumpstart Lab's system setup guide](http://tutorials.jumpstartlab.com
 
 * Presented by [Chris McCord](https://twitter.com/chris_mccord)
 * Description: http://railsconf.com/workshops#prop_108
-* [System Setup Instructions](sessions/elixir_express.md)
+* [System Setup Instructions](http://railsconftutorials.com/2014/sessions/elixir_express.html)
 * [Online Material](https://github.com/chrismccord/elixir_express)
 
 ## Thursday
