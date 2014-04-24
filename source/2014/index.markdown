@@ -71,6 +71,10 @@ There are myriad potential edgecases with the linear algebra libraries depending
 ### 2:10 - 4:30 -- Applications First, Frameworks Second: Better Systems through Design
 
 * Presented by [Adam Hawkins](https://twitter.com/adman65)
+
+Please clone the [example repo](https://github.com/ahawkins/applications-first-frameworks-second) on your
+machine before the workshop. Also make sure you fetch before starting since wifi may be flaky!
+
 * Please have Ruby 2.1 installed on your machine
 * Review [Rediscovering the Joy of Design](http://hawkins.io/2014/01/rediscovering-the-joy-of-design/)
 * Watch my screencast on [Rethinking Application Architecture](http://rethinkapplicationarchitecture.com)
