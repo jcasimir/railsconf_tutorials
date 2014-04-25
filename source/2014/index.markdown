@@ -95,4 +95,9 @@ machine before the workshop. Also make sure you fetch before starting since wifi
 
 * Presented by Zach Briggs & Todd Kaufman
 * Description: http://railsconf.com/workshops#prop_69
-* Helpers: Ed Weng, Kareem Grant
+* Helpers: Ed Weng, Kareem Grant, Jeff Belser
+* Workshop [homepage](git@github.com:testdouble/railsconf-test-drive-javascript.git)
+* If possible, please 
+  * [clone this repo](git@github.com:testdouble/railsconf-test-drive-javascript.git)
+  * (optional) have node [installed](http://nodejs.org/download/)
+  * (optional) run `npm install -g lineman`
